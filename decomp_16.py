@@ -37,13 +37,8 @@ nu_fits_z = np.zeros([384,30])
 offset_fits=np.zeros([384])
 offset_fits_z=np.zeros([384,30])
 
-Re_d = np.zeros([384])
-
 fmaxes = np.zeros([384])
-omegas = np.zeros([384])
 zs = np.zeros([384,30])
-ubs = np.zeros([384])
-ustars = np.zeros([384])
 ds= np.zeros([384])
 hcs = np.zeros([384])
 waveturb=dict()
@@ -54,10 +49,6 @@ phasebins2=[r'$-\pi$',r'$-3\pi/4$',r'$-\pi/2$',r'$-\pi/4$',r'$0$',r'$\pi/4$',r'$
 #%%
 for N in range(384):
     hparams = np.load('/Users/marianne/Desktop/VectrinoSummer/hydroparams/sdfix4_'+str(N)+'.npy',allow_pickle = True).item()
-    #ubs[N] = hparams['ub1']
-    #ustars[N] = hparams['ustar']
-    #omegas[N] = hparams['omega']
-    #zs[N] = hparams['z']
     ds[N] = hparams['d']
     hcs[N] = hparams['hc']
 #%%
@@ -157,7 +148,7 @@ def make_stokes_z(phasebins,offset,omega,u0,z,umeas,plot):
 #%%
 def solve_nu_t(N):
     vec = sio.loadmat(filepath + 'vectrino_' + str(N) + '.mat')
-    hparams = np.load('/Users/marianne/Desktop/VectrinoSummer/hydroparams/sdfix4_'+str(N)+'.npy',allow_pickle = True).item()
+    #hparams = np.load('/Users/marianne/Desktop/VectrinoSummer/hydroparams/sdfix4_'+str(N)+'.npy',allow_pickle = True).item()
     
     #vertical average over the profile
     u = np.nanmean(vec['velmaj'], axis = 0)
@@ -186,7 +177,7 @@ def solve_nu_t(N):
     p = np.arctan2(hu.imag,hu.real) 
     
     #Setting frequency to correspond to wave peak
-    omega = 2*np.pi*fmax
+    om = 2*np.pi*fmax
     
     #Calculating fluctuating velocity 
     n,m = np.shape(vec['velmaj'])
@@ -204,7 +195,7 @@ def solve_nu_t(N):
     dphi = np.pi/4 #Discretizing the phase
     phasebins = np.arange(-np.pi,np.pi,dphi)
     #constants
-    u0 = hparams['ub1']#/np.sqrt(2)
+    u0 = ubvec[N]
     
     uprof = np.zeros((len(zpos),len(phasebins))) #Measured wave velocity profile
     
@@ -214,7 +205,7 @@ def solve_nu_t(N):
            
         if ii == 0:
             #For -pi
-            idx1 = ( (p >= phasebins[-1] + (dphi/2)) | (p <= phasebins[0] + (dphi/2))) #Measured
+            idx1 = ((p >= phasebins[-1] + (dphi/2)) | (p <= phasebins[0] + (dphi/2))) #Measured
         else:
             #For phases in the middle
             idx1 = ((p >= phasebins[ii]-(dphi/2)) & (p <= phasebins[ii]+(dphi/2))) #measured
@@ -223,10 +214,14 @@ def solve_nu_t(N):
         vphase = vp[:,idx1]
         w1phase = w1p[:,idx1]
         
+        # uphase = uphase[~np.isnan(np.mean(uphase,axis=1))]
+        # vphase = vphase[~np.isnan(np.mean(vphase,axis=1))]
+        # w1phase = w1phase[~np.isnan(np.mean(w1phase,axis=1))]
+        
         '''
         big question here: get_wave_turb implements the phase method to just
         look at the wave signal, and even calculates the phase. should I
-        remove that setep of the wave_turb process? does it have an impact?
+        remove that step of the wave_turb process? does it have an impact?
         I left it as-is to mess with as little as possible, but I think
         I should maybe remove all the processing steps because it is repetitive
         and I don't know how the phase method would treat an already
@@ -242,9 +237,10 @@ def solve_nu_t(N):
         phase_obs[N,ii,0:len(uprof2[:,ii])] = uprof2[:,ii]/u0
     
     #non phase-decomposed -- not relevant now
-    waveturb2[N]=get_wave_turb(up,vp,w1p,z)
+    #waveturb2[N]=get_wave_turb2(up,vp,w1p,z)
     
-    
+
+ #%%   
     # solving for nu
     # all of the phases at the same time
     umeas = uprof.flatten(order = 'F')    
@@ -313,11 +309,7 @@ def solve_nu_t(N):
     nu_fits[N]=nu_t
     offset_fits[N] = offset_fit
     nu_fits_z[N,0:len(nu_tz)]=nu_tz
-      
-    #wave reynolds number
-    
-    Re_d[N]= hparams['ub1']*np.sqrt(2e-6/omega)/1e-6
-        
+     
         
     '''
     question here: should ub actually be ubdir/np.sqrt(2) (same u0 as in stokes)
@@ -347,10 +339,10 @@ profile for a given burst
 def scale_nu(N,plottrue):
     hparams = np.load('/Users/marianne/Desktop/VectrinoSummer/hydroparams/sdfix4_'+str(N)+'.npy',allow_pickle = True).item()
     if iswavy[N]:
-        delta = np.sqrt(2e-6/hparams['omega'])
+        delta = np.sqrt(2e-6/omega[N])
         d=hparams['d']
         hc=hparams['hc']
-        zdata = hparams['z']
+        zdata = zs[N]
         if np.isnan(d):
             d=delta
         if np.isnan(hc):
@@ -449,21 +441,12 @@ y = nu_fits/1e-6
 #y = nu_slope_nd
 x = Re_d
 #y = nu_fits/nu
-xmax = np.nanmean(x)+3*np.nanstd(x)
-xmin = np.nanmean(x)-3*np.nanstd(x)
-ymax = np.nanmean(y)+3*np.nanstd(y)
-ymin = np.nanmean(y)-3*np.nanstd(y)
 
+x,y = nanrm2(x,y)
+x,y =remove_outliers(x,y,'pca')
 
-#(x>xmin)&(x<xmax)&(y>ymin)&(y<ymax) & 
-#tmask2 = (np.nanmean(r2,axis=1)>0.1) 
-
-tmask2 = (x>xmin)&(x<xmax)&(y>ymin)&(y<ymax) &(nu_fits<0.00004)& iswavy #& (linear_r2 > 0.1) #& (np.nanmean(r2_z,axis=1)>0.2)#& (np.nanmean(r2,axis=1)>0.2) 
-
-
-
-x = np.array(x[tmask2])
-y = np.array(y[tmask2])
+#x = np.array(x[tmask2])
+#y = np.array(y[tmask2])
 #fig,ax = plt.subplots()
 #plt.loglog(x,y,'ko')
 

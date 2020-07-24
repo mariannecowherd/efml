@@ -10,28 +10,28 @@ Created on Wed May 13 15:07:10 2020
 #%%
 from scipy import interpolate
 #%%
-phasebins3=phasebins+np.pi
-jloc = [4,5,6,7,0,1,2,3]
-#controu plot of turbulence component for a single burst
-#for N in haswaves[0:10]:
-for N in [7,8,9,10,129]:
-    uwmesh = np.zeros((30,8))
-    for j in range(8):
-        for k in range(13):
-            l = jloc[j]
-            uwmesh[k,l] = (waveturb[N][j]['uw1_wave'][k])
-    z = waveturb[N][1]['z']        
-    z_mesh, y_mesh = np.meshgrid(z,phasebins3)
-    levuw1 = np.linspace(np.nanmin(uwmesh),np.nanmax(uwmesh),20);
-    plt.figure(figsize=(15,10))
-    cf = plt.contourf(y_mesh, z_mesh, uwmesh.T, levuw1, extend='both')
-    plt.colorbar(cf)
-    plt.xlabel('wave phase', fontsize=16)
-    plt.ylabel('uw1', fontsize=16)
-    plt.title('turb ' + str(N), fontsize=18)
-    plt.ylim(-0.001,0.016)
-    plt.tight_layout()
-    plt.show()
+#phasebins3=phasebins+np.pi
+# jloc = [4,5,6,7,0,1,2,3]
+# #controu plot of turbulence component for a single burst
+# #for N in haswaves[0:10]:
+# for N in [7,8,9,10,129]:
+#     uwmesh = np.zeros((30,8))
+#     for j in range(8):
+#         for k in range(13):
+#             l = jloc[j]
+#             uwmesh[k,l] = (waveturb[N][j]['uw1_wave'][k])
+#     z = waveturb[N][1]['z']        
+#     z_mesh, y_mesh = np.meshgrid(z,phasebins)
+#     levuw1 = np.linspace(np.nanmin(uwmesh),np.nanmax(uwmesh),20);
+#     plt.figure(figsize=(15,10))
+#     cf = plt.contourf(y_mesh, z_mesh, uwmesh.T, levuw1, extend='both')
+#     plt.colorbar(cf)
+#     plt.xlabel('wave phase', fontsize=16)
+#     plt.ylabel('uw1', fontsize=16)
+#     plt.title('turb ' + str(N), fontsize=18)
+#     plt.ylim(-0.001,0.016)
+#     plt.tight_layout()
+#     plt.show()
 #%%
 doesntwork=[]
 works=[]
@@ -145,6 +145,8 @@ plt.figure(figsize=(15,10))
 cf = plt.contourf(y_mesh, z_mesh, uwmesh.T, levuw1, extend='both')
 plt.colorbar(cf, label=r'$-\overline{\tilde{u}\tilde{w}}/ u_b^2$')
 
+plt.ylim(np.nanmin(znew),np.nanmax(znew))
+
 plt.plot(phasebins,usbins[4,:],'o:',color="white")
 plt.xticks(ticks = phasebins, labels = phaselabels)
 
@@ -152,7 +154,7 @@ plt.xticks(ticks = phasebins, labels = phaselabels)
 plt.xlabel('wave phase', fontsize=16)
 plt.ylabel('z', fontsize=16)
 #plt.title(r'$\overline{\tilde{u}\tilde{w}}/ u_b^2$', fontsize=18)
-plt.ylim(-0.001,0.016)
+
 plt.tight_layout()
 plt.show()
 
@@ -202,7 +204,7 @@ plt.ylabel('z', fontsize=16)
 plt.title(r'$du/dz / \Delta u_b$', fontsize=18)
 plt.ylim(-0.001,0.016)
 plt.tight_layout()
-plt.errorbar(phasebins3,np.nanmean(y,axis=0),yerr=ystd/np.sqrt(len(haswaves)+1),fmt='ko:',capsize=2)
+plt.errorbar(phasebins,np.nanmean(y,axis=0),yerr=ystd/np.sqrt(len(haswaves)+1),fmt='ko:',capsize=2)
 plt.show()
 #%%
 fig,ax=plt.subplots()

@@ -10,7 +10,7 @@ from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 #%%
 
-blparams = np.load('/Users/Marianne/Desktop/VectrinoSummer/blparams.npy',allow_pickle=True).item()
+blparams = np.load('/Users/Marianne/Documents/GitHub/efml/blparams.npy',allow_pickle=True).item()
 delta = blparams['delta']
 phasebins = blparams['phasebins']
 ustarwc_sg17 = blparams['ustarwc_sg17']
@@ -87,5 +87,5 @@ ax.set_ylabel(r'$\Delta$')
     #ax.set_title(str(source))
 ax.set_xlabel(r'$u_*/\omega$')
 
-fig.savefig('all_delta.png')
+fig.savefig('all_delta.pdf')
 
