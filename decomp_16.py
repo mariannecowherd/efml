@@ -155,9 +155,9 @@ def solve_nu_t(N):
     
     z = vec['z']
     zidx = vec['z'] > 0.005
-    zpos = vec['z'][zidx]
+    zidx2 = vec['z'][zidx]
     
-    zidx2 = vec['z'] > 0
+    zpos = vec['z'] > 0
     
     #saving wave turb results for each burst
     waveturb[N] = {}
@@ -197,9 +197,9 @@ def solve_nu_t(N):
     #constants
     u0 = ubvec[N]
     
-    uprof = np.zeros((len(zpos),len(phasebins))) #Measured wave velocity profile
+    uprof = np.zeros((len(zidx2),len(phasebins))) #Measured wave velocity profile
     
-    uprof2 = np.zeros((len(z[zidx2]),len(phasebins)))
+    uprof2 = np.zeros((len(z[zpos]),len(phasebins)))
     
     for ii in range(len(phasebins)):
            
@@ -213,27 +213,14 @@ def solve_nu_t(N):
         uphase = up[:,idx1]
         vphase = vp[:,idx1]
         w1phase = w1p[:,idx1]
-        
-        # uphase = uphase[~np.isnan(np.mean(uphase,axis=1))]
-        # vphase = vphase[~np.isnan(np.mean(vphase,axis=1))]
-        # w1phase = w1phase[~np.isnan(np.mean(w1phase,axis=1))]
-        
-        '''
-        big question here: get_wave_turb implements the phase method to just
-        look at the wave signal, and even calculates the phase. should I
-        remove that step of the wave_turb process? does it have an impact?
-        I left it as-is to mess with as little as possible, but I think
-        I should maybe remove all the processing steps because it is repetitive
-        and I don't know how the phase method would treat an already
-        decomposed signal.
-        '''
+
         waveturb[N][ii] = get_wave_turb(uphase,vphase,w1phase,z)
         
         uproftemp = np.nanmean(up[:,idx1],axis = 1)  #Averaging over the indices for this phase bin for measurement
-        waveturb[N][ii]['dudz'] = np.gradient(uproftemp[zidx2.flatten(order='F')])/np.gradient(z[zidx2.flatten(order='F')].flatten(order='F'))
-        #average \tilde{u} profile for that phase
+        waveturb[N][ii]['dudz'] = np.gradient(uproftemp[zpos.flatten(order='F')])/np.gradient(z[zpos.flatten(order='F')].flatten(order='F'))
+        
         uprof[:,ii] =  uproftemp[zidx[:,0]]
-        uprof2[:,ii] = uproftemp[zidx2[:,0]]
+        uprof2[:,ii] = uproftemp[zpos[:,0]]
         phase_obs[N,ii,0:len(uprof2[:,ii])] = uprof2[:,ii]/u0
     
     #non phase-decomposed -- not relevant now
