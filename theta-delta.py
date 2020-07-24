@@ -6,34 +6,30 @@ Created on Thu Jul 23 11:54:47 2020
 @author: marianne
 """
 
-import pandas as pd
 import numpy as np
 import seaborn as sns
+import matplotlib
 import matplotlib.pyplot as plt
+import scipy
+
+import nanrm2
+import naninterp
+import remove_outliers
 
 import warnings
 warnings.simplefilter('ignore')
 
-import numpy as np
-import matplotlib.pyplot as plt
-
-from astropy.modeling.models import BlackBody1D
-from astropy import units as u
-from scipy.interpolate import interp1d
-from scipy import interpolate
-
-import matplotlib
-import numpy as np
-from matplotlib import pyplot as plt
-
 sns.set_style('ticks')
-sns.set_style('whitegrid')
 sns.set_context("talk", font_scale=0.9, rc={"lines.linewidth": 1.5})
 sns.set_context(rc = {'patch.linewidth': 0.0})
-
-#%%
-
 #bin by ustar/omega
+
+#data
+blparams = np.load('/Users/Marianne/Documents/GitHub/efml/blparams.npy',allow_pickle=True).item()
+delta = blparams['delta']
+phasebins = blparams['phasebins']
+ustarwc_gm = blparams['ustarwc_gm']
+omega = blparams['omega']
 
 #how many bins
 ct=7
@@ -62,9 +58,7 @@ for ii in range(ct):
 #
 emean = [(edges[i] + edges[i+1])/2 for i in range(len(edges)-1)]
 
-sns.set_style('ticks')
-sns.set_context("talk", font_scale=0.9, rc={"lines.linewidth": 1.5})
-sns.set_context(rc = {'patch.linewidth': 0.0})
+
 fig, ax = plt.subplots(1, figsize=(8, 5), gridspec_kw={'hspace': 0.20, 'wspace': 0.15})
 
 # choose a colormap
