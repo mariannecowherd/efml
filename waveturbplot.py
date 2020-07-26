@@ -3,7 +3,7 @@
 """
 Created on Sat Jul 25 14:56:51 2020
 
-@author: marianne
+@author: marianne, gegan
 
 @title: waveturbplot
 """

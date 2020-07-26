@@ -3,7 +3,7 @@
 """
 Created on Sat Jul 25 15:35:26 2020
 
-@author: marianne
+@author: marianne, gegan
 
 @title: stokesfunctions
 """

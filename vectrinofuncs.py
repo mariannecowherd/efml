@@ -21,6 +21,7 @@ nanrm2
 naninterp
 '''
 
+#packages
 import numpy as np
 import scipy.signal as sig
 import matplotlib.pyplot as plt
@@ -29,6 +30,8 @@ import copy
 import scipy
 import scipy.interpolate
 
+
+#user defined functions
 
 def pa_rotation(u,v,theta):
     #Storing as complex variable w = u + iv

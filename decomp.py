@@ -3,7 +3,7 @@
 """
 Created on Sat Jul 25 15:25:18 2020
 
-@author: marianne
+@author: marianne, gegan
 
 @title: decomp
 """

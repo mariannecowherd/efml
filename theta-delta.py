@@ -3,7 +3,7 @@
 """
 Created on Thu Jul 23 11:54:47 2020
 
-@author: marianne
+@author: marianne, gegan
 
 @title: theta-delta
 """

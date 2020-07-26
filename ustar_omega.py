@@ -3,7 +3,7 @@
 """
 Created on Fri Jul 17 10:31:02 2020
 
-@author: marianne
+@author: marianne, gegan
 
 @title: ustaromega
 """

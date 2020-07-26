@@ -49,7 +49,6 @@ zs = stress['z']
 u0s = stress['freestream']
 
 
-
 burstnums = list(range(384))
 '''
 construct stokes solution given omega, phi, and u0
