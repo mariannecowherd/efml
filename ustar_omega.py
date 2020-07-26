@@ -96,5 +96,5 @@ ax.set_ylabel(r'$\Delta$')
     #ax.set_title(str(source))
 ax.set_xlabel(r'$u_*/\omega$')
 
-fig.savefig('all_delta.pdf',dpi=500)
+fig.savefig('plots/all_delta.pdf',dpi=500)
 

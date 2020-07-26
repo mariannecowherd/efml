@@ -144,4 +144,4 @@ for i in range(8):
     ax.plot(omsum[:,i]/ub_bar,z+0.001,':',color = colorstr,label = r'$\theta = $' + phasebins2[i])
     
 ax.set_ylim(0,0.015)
-plt.savefig('vel_ens.pdf')
+plt.savefig('plots/vel_ens.pdf')

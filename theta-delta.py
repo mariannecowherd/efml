@@ -103,4 +103,4 @@ plt.xticks(ticks = phasebins, labels = phaselabels)
 plt.xlabel(r'$\theta$')
 plt.ylabel(r'$\Delta~[m]$')
 
-plt.savefig('theta-delta.pdf', dpi=500)
+plt.savefig('plots/theta-delta.pdf', dpi=500)

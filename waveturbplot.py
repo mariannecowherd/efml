@@ -94,4 +94,4 @@ plt.ylabel('z', fontsize=16)
 plt.tight_layout()
 plt.show()
 
-plt.savefig('waveturb.pdf',dpi=500)
+plt.savefig('plots/waveturb.pdf',dpi=500)
