@@ -4,11 +4,35 @@
 Created on Fri Jul 17 10:31:02 2020
 
 @author: marianne
+
+@title: ustaromega
 """
+import numpy as np
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error
-from sklearn.metrics import r2_score
-#%%
+import matplotlib.pyplot as plt
+import scipy
+
+import vectrinofuncs as vfs
+
+
+params = {
+   'axes.labelsize': 14,
+   'font.size': 14,
+   'legend.fontsize': 12,
+   'xtick.labelsize': 14,
+   'ytick.labelsize': 14,
+   'text.usetex': True,
+   'font.family': 'serif',
+   'axes.grid' : False,
+   'image.cmap': 'plasma'
+   }
+
+
+
+plt.rcParams.update(params)
+plt.close('all')
+
+
 
 blparams = np.load('/Users/Marianne/Documents/GitHub/efml/blparams.npy',allow_pickle=True).item()
 delta = blparams['delta']
@@ -24,26 +48,13 @@ ubvec = blparams['ubvec']
 omega = blparams['omega']
 dirspread = blparams['dirspread']
 
-Re_d = ubvec * np.sqrt(2e-6/omega)/1e-6
+nu = 1e-6
 
-#%%
-params = {
-   'axes.labelsize': 14,
-   'font.size': 14,
-   'legend.fontsize': 12,
-   'xtick.labelsize': 14,
-   'ytick.labelsize': 14,
-   'text.usetex': True,
-   'font.family': 'serif',
-   'axes.grid' : False
-   }
+Re_d = ubvec * np.sqrt(2*nu/omega)/nu
 
 
 
-plt.rcParams.update(params)
-fig,ax = plt.subplots()
-#%%
-plt.close('all')
+
 fig,ax = plt.subplots()
 sources = ['gm','sg17','meas']
 xs = [ustarwc_gm,ustarwc_sg17,ustarwc_meas]/omega
@@ -51,16 +62,14 @@ colors = ['lightgray','gray','black']
 
 for i in range(3):
     y=(delta[1,:]+delta[5,:])/2
-    y = y[iswavy]
-    x = xs[i][iswavy]
-    #x = Re_d[iswavy]
-    x,y = nanrm2(x,y)
-    x,y = remove_outliers(x,y,'pca')
+    x = xs[i]
+    x,y = vfs.nanrm2(x,y)
+    x,y = vfs.remove_outliers(x,y,'pca')
 
     
     ct=7
-    ymean, edges, bnum = scipy.stats.binned_statistic(naninterp(x),naninterp(y),'mean',bins = ct)
-    ystd, e, bn  = scipy.stats.binned_statistic(naninterp(x),naninterp(y),'std',bins = ct)
+    ymean, edges, bnum = scipy.stats.binned_statistic(vfs.naninterp(x),vfs.naninterp(y),'mean',bins = ct)
+    ystd, e, bn  = scipy.stats.binned_statistic(vfs.naninterp(x),vfs.naninterp(y),'std',bins = ct)
     mids = (edges[:-1]+edges[1:])/2
     
     
@@ -87,5 +96,5 @@ ax.set_ylabel(r'$\Delta$')
     #ax.set_title(str(source))
 ax.set_xlabel(r'$u_*/\omega$')
 
-fig.savefig('all_delta.pdf')
+fig.savefig('all_delta.pdf',dpi=500)
 

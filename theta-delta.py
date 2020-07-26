@@ -4,6 +4,8 @@
 Created on Thu Jul 23 11:54:47 2020
 
 @author: marianne
+
+@title: theta-delta
 """
 
 import numpy as np
@@ -12,16 +14,34 @@ import matplotlib
 import matplotlib.pyplot as plt
 import scipy
 
-import nanrm2
-import naninterp
-import remove_outliers
+import vectrinofuncs as vfs
 
 import warnings
 warnings.simplefilter('ignore')
 
+#plot styles
 sns.set_style('ticks')
 sns.set_context("talk", font_scale=0.9, rc={"lines.linewidth": 1.5})
 sns.set_context(rc = {'patch.linewidth': 0.0})
+
+
+params = {
+   'axes.labelsize': 14,
+   'font.size': 14,
+   'legend.fontsize': 12,
+   'xtick.labelsize': 14,
+   'ytick.labelsize': 14,
+   'text.usetex': True,
+   'font.family': 'serif',
+   'axes.grid' : False,
+   'image.cmap': 'plasma'
+   }
+
+
+plt.rcParams.update(params)
+plt.close('all')
+
+
 #bin by ustar/omega
 
 #data
@@ -41,15 +61,15 @@ d = np.zeros((delta.shape))
 
 #keeps the delta vector the same size as x with the same values removed
 for ii in range(8):
-    a,temp = nanrm2(x,delta[ii,:])
-    b,c = remove_outliers(a,temp,'pca')
+    a,temp = vfs.nanrm2(x,delta[ii,:])
+    b,c = vfs.remove_outliers(a,temp,'pca')
     d[ii,0:len(c)] = c
 
-x,y = nanrm2(x,y)
-x,y = remove_outliers(x,y,'pca')
+x,y = vfs.nanrm2(x,y)
+x,y = vfs.remove_outliers(x,y,'pca')
 
-ymean, edges, bnum = scipy.stats.binned_statistic(naninterp(x),naninterp(y),'mean',bins = ct)
-ystd, e, bn  = scipy.stats.binned_statistic(naninterp(x),naninterp(y),'std',bins = ct)
+ymean, edges, bnum = scipy.stats.binned_statistic(vfs.naninterp(x),vfs.naninterp(y),'mean',bins = ct)
+ystd, e, bn  = scipy.stats.binned_statistic(vfs.naninterp(x),vfs.naninterp(y),'std',bins = ct)
 
 for ii in range(ct):
     idx = ((x>=edges[ii]) & (x<edges[ii+1]))
