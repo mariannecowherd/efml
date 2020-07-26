@@ -238,7 +238,7 @@ def calculate_fft(x,nfft):
 
 
 def get_turb_waves(vec,fs,method):
-    
+    import numpy as np
     waveturb = dict()
     #Implement Bricker and Monismith method
     if method == 'phase':
@@ -292,6 +292,7 @@ def get_turb_waves(vec,fs,method):
                 fm = np.arange(0,nnyq)*df
                    
                 #Phase
+                
                 Uph = np.arctan2(np.imag(Amu),np.real(Amu)).squeeze()[:nnyq]
                 Vph = np.arctan2(np.imag(Amv),np.real(Amv)).squeeze()[:nnyq]
                 W1ph = np.arctan2(np.imag(Amw1),np.real(Amw1)).squeeze()[:nnyq]
@@ -523,7 +524,55 @@ def nanrm2(x,y):
     return(x,y)
 
 
+def calculate_fft(x,nfft):
+    
+    X = copy.deepcopy(x)
+    
+    if X.ndim==1:
+        n = np.size(X)
+    elif X.ndim==2:
+        n,m = np.shape(X)
+        if m>n:
+            X = X.T
+            n,m = np.shape(X)
+    
+    #num = int(np.floor(4*n/nfft) - 3)
+    num = 1
+    
+    X = X - np.mean(X)
+    
+    #jj = np.arange(0,nfft)
+    
+    WIN = np.hamming(n)
+    
+    A = np.zeros((num,nfft),dtype = np.complex128)
 
+    varXwindtot = 0    
+    
+    for ii in range(num):
+        istart = int(np.ceil(ii*n/4))
+        istop = int(np.floor(istart + n))  
+        Xwind = X[istart:istop].squeeze()
+        lenX = len(Xwind)
+        Xwind = Xwind - np.mean(Xwind) #de-mean
+        varXwind = np.dot(Xwind,Xwind)/lenX
+        Xwind = scipy.signal.detrend(Xwind)
+        
+        varXwindtot = varXwindtot + varXwind
+        Xwind = Xwind*WIN
+        tmp = np.dot(Xwind,Xwind)/lenX
+        
+        if tmp == 0:
+            Xwind = Xwind*0
+        else:
+            Xwind = Xwind*np.sqrt(varXwind/tmp)
+            
+        Xwind = np.pad(Xwind,(0,nfft-n),'constant')
+        
+        A[ii,:] = np.fft.fft(Xwind.T)/np.sqrt(n)
+        
+    
+    return A
 def naninterp(x):
     
     if ~np.all(np.isnan(x)):

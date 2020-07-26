@@ -108,6 +108,3 @@ for n in burstnums:
         continue
     
 np.save('phaseprofiles.npy', profiles)
-        
-
-
