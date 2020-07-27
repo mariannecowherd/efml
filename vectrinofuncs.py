@@ -197,6 +197,33 @@ def displacement_thickness(uprof,z):
     
     return delta_1
 
+def displacement_thickness_interp(uprof,z):
+    """Calculates a modified displacement thickness for phase resolved boundary layer
+    velocity profiles. 
+    
+    uprof is an n x p array where n is the number of vertical
+    measurement bins, and p is the number of phases. 
+    
+    z is the vertical coordinate and is an n x 1 array. 
+    
+    Use this function when calculating on interpolated, deployment-averaged profiles
+    """
+    import numpy as np
+    
+    int_range = ((z > 0) & (z < 0.011)) #keep it within the good SNR range
+    z_int = z[int_range] #Flipping for the integral
+    uprof_int = np.abs(uprof[int_range,:])
+    
+    umax = np.nanmax(uprof_int, axis = 0) #Finding maximum velocity, wherever it may be
+    idxmax = np.nanargmax(uprof_int, axis = 0)
+    
+    delta_1 = np.zeros((uprof.shape[1],))
+    for i in range(len(delta_1)):
+        delta_1[i] = np.trapz(1 - uprof_int[:idxmax[i],i]/umax[i],z_int[:idxmax[i]])
+    
+    
+    return delta_1
+
 def calculate_fft(x,nfft):
     
     import copy
