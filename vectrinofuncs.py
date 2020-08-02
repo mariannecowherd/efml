@@ -10,7 +10,7 @@ Created on Sat Jul 25 16:03:03 2020
 
 
 '''
-Table of Contents
+Table of Contents:
 pa_rotation
 wave_vel_decomp
 displacement_thickness
@@ -21,7 +21,8 @@ nanrm2
 naninterp
 '''
 
-#packages
+#packages used in all functions
+#relevant packages are imported as part of the user functions
 import numpy as np
 import scipy.signal as sig
 import matplotlib.pyplot as plt
@@ -34,6 +35,8 @@ import scipy.interpolate
 #user defined functions
 
 def pa_rotation(u,v,theta):
+    import numpy as np
+    
     #Storing as complex variable w = u + iv
     w = u + 1j*v
     
@@ -70,7 +73,11 @@ def wave_vel_decomp(u,fs,component,plot = False):
     
     
     """
-
+    import signal as sig
+    import numpy as np
+    from vectrinofuncs import naninterp
+    import matplotlib.pyplot as plt
+    
     n = len(u)
     nfft = n
     
@@ -174,6 +181,8 @@ def displacement_thickness(uprof,z):
     z is the vertical coordinate and is an n x 1 array. 
     
     """
+    import numpy as np
+    
     int_range = ((z > 0) & (z < 0.011)) #keep it within the good SNR range
     z_int = np.flipud(z[int_range]) #Flipping for the integral
     uprof_int = np.abs(np.flipud(uprof[int_range,:]))
@@ -188,7 +197,38 @@ def displacement_thickness(uprof,z):
     
     return delta_1
 
+def displacement_thickness_interp(uprof,z):
+    """Calculates a modified displacement thickness for phase resolved boundary layer
+    velocity profiles. 
+    
+    uprof is an n x p array where n is the number of vertical
+    measurement bins, and p is the number of phases. 
+    
+    z is the vertical coordinate and is an n x 1 array. 
+    
+    Use this function when calculating on interpolated, deployment-averaged profiles
+    """
+    import numpy as np
+    
+    int_range = ((z > 0) & (z < 0.011)) #keep it within the good SNR range
+    z_int = z[int_range] #Flipping for the integral
+    uprof_int = np.abs(uprof[int_range,:])
+    
+    umax = np.nanmax(uprof_int, axis = 0) #Finding maximum velocity, wherever it may be
+    idxmax = np.nanargmax(uprof_int, axis = 0)
+    
+    delta_1 = np.zeros((uprof.shape[1],))
+    for i in range(len(delta_1)):
+        delta_1[i] = np.trapz(1 - uprof_int[:idxmax[i],i]/umax[i],z_int[:idxmax[i]])
+    
+    
+    return delta_1
+
 def calculate_fft(x,nfft):
+    
+    import copy
+    import numpy as np
+    import scipy
     
     X = copy.deepcopy(x)
     
@@ -238,7 +278,12 @@ def calculate_fft(x,nfft):
 
 
 def get_turb_waves(vec,fs,method):
+    
     import numpy as np
+    import copy
+    from vectrinofuncs import naninterp
+    from vectrinofuncs import calculate_fft
+    
     waveturb = dict()
     #Implement Bricker and Monismith method
     if method == 'phase':
@@ -494,6 +539,8 @@ def get_turb_waves(vec,fs,method):
 
 def remove_outliers(x,y,outmethod):
     
+    import numpy as np
+    from sklearn.decomposition import PCA
     
     if outmethod == 'std':
         K = 4
@@ -516,6 +563,9 @@ def remove_outliers(x,y,outmethod):
         return (x,y)
 
 def nanrm2(x,y):
+    
+    impot numpy as np
+    
     y = y[~np.isnan(x)]
     x = x[~np.isnan(x)]
     
@@ -525,6 +575,10 @@ def nanrm2(x,y):
 
 
 def calculate_fft(x,nfft):
+    
+    import copy
+    import numpy as np
+    import scipy
     
     X = copy.deepcopy(x)
     
@@ -573,7 +627,10 @@ def calculate_fft(x,nfft):
         
     
     return A
+
 def naninterp(x):
+    import numpy
+    import scipy
     
     if ~np.all(np.isnan(x)):
     

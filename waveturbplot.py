@@ -68,29 +68,34 @@ for i in range(zinterp.size):
     
     uw_wave_interp[i,:] = np.nanmean(uz, axis = 0)
 
-znew = np.linspace(0.001, 0.015, 15)
+znew = np.linspace(0.001, 0.015, 15)*100
 dphi = np.pi/4 #Discretizing the phase
-phasebins = np.arange(-np.pi,np.pi,dphi)
+phasebins = np.arange(-3*np.pi/4, np.pi + dphi,dphi)
 
-uwmesh = -uw_wave_interp 
+uwmesh = -np.roll(uw_wave_interp, 1)
 z_mesh, y_mesh = np.meshgrid(znew,phasebins)
 levuw1 = np.linspace(np.nanmin(uwmesh),np.nanmax(uwmesh),20);
 plt.figure(figsize=(15,10))
 cf = plt.contourf(y_mesh, z_mesh, uwmesh.T, levuw1, extend='both')
-plt.colorbar(cf, label=r'$-\overline{\tilde{u}\tilde{w}}/ u_b^2$')
+cbar = plt.colorbar(cf, label=r'$-\overline{\tilde{u}\tilde{w}}/ u_b^2$')
+cbar.set_ticks(np.arange(0,0.003,5e-4))
 
-
-phaselabels = [r'$-\pi$',r'$-\frac{3\pi}{4}$',r'$-\frac{\pi}{2}$', r'$-\frac{\pi}{4}$', 
-               r'$0$', r'$\frac{\pi}{4}$', r'$\frac{\pi}{2}$',r'$\frac{3\pi}{4}$' ]
+phaselabels = [r'$-\frac{3\pi}{4}$',r'$-\frac{\pi}{2}$', r'$-\frac{\pi}{4}$', 
+               r'$0$', r'$\frac{\pi}{4}$', r'$\frac{\pi}{2}$',r'$\frac{3\pi}{4}$',
+               r'$\pi$']
 
 plt.ylim(np.nanmin(znew),np.nanmax(znew))
 
-plt.plot(phasebins,np.nanmean(delta,axis=1),'o:',color="white")
+delta_mean = np.nanmean(2*delta, axis = 1)
+delta_ci = 1.96*np.nanstd(2*delta, axis = 1)/np.sqrt(delta.shape[1])
+
+plt.errorbar(phasebins,np.roll(100*delta_mean,1), yerr = np.roll(delta_ci*100,1),
+             fmt = 'o:',color= "white", capsize = 2)
 plt.xticks(ticks = phasebins, labels = phaselabels)
 
 
 plt.xlabel('wave phase', fontsize=16)
-plt.ylabel('z', fontsize=16)
+plt.ylabel('z (cmab)', fontsize=16)
 plt.tight_layout()
 plt.show()
 

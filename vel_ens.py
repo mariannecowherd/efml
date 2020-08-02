@@ -137,11 +137,22 @@ vel_ens = np.nanmean(vel_interp[velidx,:,:],axis=0)
 
 phasebins2 = ['$-\\pi$', '$-3\\pi/4$', '$-\\pi/2$','$-\\pi/4$', '$0$',
               '$\\pi/4$', '$\\pi/2$', '$3\\pi/4$']
+
+delta_plot = 2*vfs.displacement_thickness_interp(vel_ens,znew)
+
 fig,ax = plt.subplots()
 for i in range(8):
     ax.plot(1.9*vel_ens[:,i],znew) #1.9 is a fudge factor
     colorstr = 'C' + str(i)
     ax.plot(omsum[:,i]/ub_bar,z+0.001,':',color = colorstr,label = r'$\theta = $' + phasebins2[i])
+    
+    #Spline fit to velocity profiles to add BL thickness
+    tck = interpolate.splrep(znew,1.9*vel_ens[:,i], s = 0)
+    zinterp = np.linspace(0.001,0.015,200)
+    velinterp = interpolate.splev(zinterp,tck,der = 0)
+    
+    blidx = np.argmin(np.abs(delta_plot[i] - zinterp))
+    ax.plot(velinterp[blidx],zinterp[blidx],'o', color = colorstr)
     
 ax.set_ylim(0,0.015)
 plt.savefig('plots/vel_ens.pdf')
