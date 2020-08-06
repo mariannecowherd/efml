@@ -73,7 +73,7 @@ def wave_vel_decomp(u,fs,component,plot = False):
     
     
     """
-    import signal as sig
+    import scipy.signal as sig
     import numpy as np
     from vectrinofuncs import naninterp
     import matplotlib.pyplot as plt
@@ -564,7 +564,7 @@ def remove_outliers(x,y,outmethod):
 
 def nanrm2(x,y):
     
-    impot numpy as np
+    import numpy as np
     
     y = y[~np.isnan(x)]
     x = x[~np.isnan(x)]
@@ -647,3 +647,305 @@ def naninterp(x):
             x[np.isnan(x)]=f(xnew).squeeze()
     
     return x
+
+
+def get_dissipation(vectrino,fs,method):
+    import numpy as np
+    import scipy
+    import datetime as dt
+    
+    if method == 'structure':
+        
+        probe = 'w2'
+        #Calculating w_prime
+        m,n = np.shape(vectrino[probe])
+        wp = np.zeros((m,n))
+        wbar = np.nanmean(vectrino[probe],axis = 1)
+        for ii in range(n):
+            wp[:,ii] = vectrino[probe][:,ii] - wbar
+        
+        z = vectrino['z']
+        z = z[z>0]
+        dz = np.diff(z)
+        
+        #Want at least 5 above/below following Truleo
+        zeps = z[5:-5]
+        eps = np.zeros((len(zeps),))
+#        D = np.zeros((len(zeps),5))
+#        r = np.arange(2,12,2)*np.abs(dz[0])
+        def structfunc(r,N,A):
+            return N + A*(r**(2/3))        
+        
+        for ii in range(len(zeps)):
+            idx = np.argmin(np.abs(z-zeps[ii]))
+            numr = np.min([np.sum(np.arange(len(z))>idx), np.sum(np.arange(len(z)) < idx)])
+            
+            r = np.linspace(2,2*numr,numr)*np.abs(dz[0])
+            D = np.empty_like(r)
+            for jj in range(len(r)):
+                D[jj] = np.nanmean((wp[idx-jj,:] - wp[idx+jj,:])**2)
+                
+            try:
+                p0, cov = scipy.optimize.curve_fit(structfunc,r,D, p0 = (1e-5,1e-3),maxfev = 10000)
+                N = p0[0]
+                A = p0[1]
+                eps[ii] = (A/2.1)**(3/2)
+                
+##                #Test plotting
+#                plt.figure(ii)
+#                plt.plot(r,D,'k*')
+#                plt.plot(r,N + A*(r**(2/3)),'r:')     
+            except RuntimeError:
+                print('Curve fit failed')
+                eps[ii] = np.NaN
+            except TypeError:
+                print('Curve fit failed')
+                eps[ii] = np.NaN
+
+        return eps,zeps
+    
+    elif method == 'Fedd07':
+        
+        def calcFeddA6(sig1,sig2,sig3,u1,u2,omega):
+            arrlen = 120
+            rho = np.logspace(-2,4,np.int_(arrlen))
+            theta = np.linspace(-np.pi,np.pi,np.int_(arrlen/10))
+            phi = np.linspace(-np.pi/2,np.pi/2,np.int_(arrlen/10))
+                    
+            #This way is pretty slow but I think it works
+            I3 = np.zeros((len(theta),len(phi),len(rho)))
+            for jj in range(len(phi)):
+                for kk in range(len(rho)):
+                    gamma = np.sqrt((np.cos(phi[jj])**2)*(((np.cos(theta)**2)/sig1**2) + ((np.sin(theta)**2)/sig2**2))
+                        + ((np.sin(phi[jj])**2)/(sig3**2)) )
+                    ksquare = (gamma**2)*(rho[kk]**2)
+                    k3 = rho[kk]*np.sin(phi[jj])/sig3
+                    
+                    I3[:,jj,kk] = (gamma**(-11./3))*(1-(k3*k3/ksquare))*np.exp((-(rho[kk]*np.cos(phi[jj])*(
+                        (np.cos(theta)*u1/sig1) + (np.sin(theta)*u2/sig2))-omega)**2)/(2*rho[kk]**2))*(
+                        np.cos(phi[jj])/(sig1*sig2*sig3))
+            I2 = np.trapz(I3,theta,axis = 0)
+            
+            I1 = np.trapz(I2,phi,axis = 0)
+
+            M33 = np.trapz(rho**(-8./3)*I1,rho)
+            return M33
+        
+        m,n = np.shape(vectrino['velmaj'])
+        
+        eps = np.zeros((m,))
+        omega_range = [2*np.pi*4,2*np.pi*6]
+        alpha = 1.5
+            
+        for ii in range(m):
+            u = vectrino['velmaj'][ii,:]
+            v = vectrino['velmin'][ii,:]
+            w = vectrino['w1'][ii,:]
+            
+            if np.sum(np.isnan(u)) < len(u)/2:
+            
+                fw,Pw = sig.welch(w,fs = fs, window = 'hamming', nperseg = len(w)//20,
+                                      detrend = 'linear')
+                
+                
+#                noiserange = (fw>=20) & (fw<=30) #Customize this based on instrument and spectra
+#                noiselevel = np.nanmean(Pw[noiserange])
+                
+                omega = 2*np.pi*fw
+                
+                inds = (omega > omega_range[0]) & (omega < omega_range[1])
+                omega = omega[inds]
+                Pw = (Pw[inds])/(2*np.pi)
+              
+                sig1 = np.std(u)
+                sig2 = np.std(v)
+                sig3 = np.std(w)
+                
+                u1 = np.abs(np.nanmean(u))
+                u2 = np.abs(np.nanmean(v))
+                
+                
+                M33 = np.zeros_like(omega)
+                for jj in range(len(omega)): 
+                    M33[jj] = calcFeddA6(sig1,sig2,sig3,u1,u2,omega[jj])
+                
+                epsomega = ((Pw*2*(2*np.pi)**(3/2))/(alpha*M33))**(3/2)
+                
+                eps[ii] = np.nanmean(epsomega)
+        
+        return eps
+    
+    elif method == 'TE01':
+        
+        #Much of this code taken from Dolfyn package, reworked for Vectrino Profiler
+        
+        
+        def calcA13(sigV,theta):
+        #Integral from appendix
+           x = np.arange(-20,20,1e-2)
+           out = np.empty_like(sigV.flatten())
+           for i, (b,t) in enumerate(zip(sigV.flatten(),theta.flatten())):
+               out[i] = np.trapz(np.cbrt(x ** 2 - 2 / b * np.cos(t) * x + 
+                  b ** (-2)) *np.exp(-0.5 * x ** 2), x)
+        
+           return out.reshape(sigV.shape)*(2*np.pi)**(-0.5) * sigV**(2/3)
+  
+        def up_angle(u,v):
+            Uh = naninterp(u) + 1j*naninterp(v)
+            dt = sig.detrend(Uh)
+            fx = dt.imag <= 0
+            dt[fx] = dt[fx]*np.exp(1j * np.pi)
+            return np.angle(np.mean(dt,-1,dtype = np.complex128))
+        
+        def U_angle(u,v):
+            n = np.nanmean(v)
+            e = np.nanmean(u)
+            return np.arctan2(n,e)
+        
+        m,n = np.shape(vectrino['velmaj'])
+        
+        eps = np.zeros((m,))
+        omega_range = [2*np.pi*4,2*np.pi*6] #Customize this based on instrument and spectra
+   
+        for ii in range(m):
+            u = vectrino['velmaj'][ii,:]
+            v = vectrino['velmin'][ii,:]
+            w = vectrino['w1'][ii,:]
+            
+            
+            if np.sum(np.isnan(u)) < len(u)/2:
+                V = np.sqrt(np.nanmean(u**2 + v**2))
+                sigma = np.std(np.sqrt(u**2+v**2))
+                
+                thetaup = up_angle(u,v)
+                thetaU = U_angle(u,v)
+                theta = thetaU - thetaup
+                
+                alpha = 1.5
+                intgrl = calcA13(sigma/V,theta)
+                
+                fu,Pu = sig.welch(u,fs = fs, window = 'hamming', nperseg = len(u)//20,
+                                  detrend = 'linear')
+                fv,Pv = sig.welch(v,fs = fs, window = 'hamming', nperseg = len(v)//20,
+                                  detrend = 'linear')
+                fw,Pw = sig.welch(w,fs = fs, window = 'hamming', nperseg = len(w)//20,
+                                  detrend = 'linear')
+                
+                noiserange = (fu>=20) & (fu<=30) #Customize this based on instrument and spectra
+                noiselevel = np.nanmean(Pu[noiserange] + Pv[noiserange])
+                
+                omega = 2*np.pi*fu
+                inds = (omega > omega_range[0]) & (omega < omega_range[1])
+                omega = omega[inds]
+                Pu = Pu[inds]/(2*np.pi)
+                Pv = Pv[inds]/(2*np.pi)
+                Pw = Pw[inds]/(2*np.pi)
+                
+                uv = (np.mean((Pu + Pv - noiselevel)*(omega)**(5/3))/
+                      (21/55*alpha*intgrl))**(3/2)/V
+                      
+                #Adding w component
+                uv += (np.mean((Pw)*(omega)**(5/3))/
+                      (12/55*alpha*intgrl))**(3/2)/V
+                
+               # Averaging
+                uv *= 0.5
+                
+                eps[ii] = uv
+            else:
+                eps[ii] = np.NaN
+        return eps
+    
+    elif method == 'full':
+    
+        u = vectrino['velmaj']
+        v = vectrino['velmin']
+        w = vectrino['w1']
+        
+        #Calculating fluctuating velocities
+        m,n = np.shape(u)
+        up = np.zeros((m,n))
+        vp = np.zeros((m,n))
+        wp = np.zeros((m,n))
+        
+        
+        for ii in range(m):
+            if np.sum(np.isnan(u[ii,:])) < len(u[ii,:])/2:
+                fu,Pu = sig.welch(u[ii,:],fs = fs, window = 'hamming', nperseg = n//50, detrend = 'linear')
+                fv,Pv = sig.welch(v[ii,:],fs = fs, window = 'hamming', nperseg = n//50, detrend = 'linear')
+                fw,Pw = sig.welch(w[ii,:],fs = fs, window = 'hamming', nperseg = n//50, detrend = 'linear')
+                
+                fumax = fu[np.argmax(Pu)]
+                fvmax = fv[np.argmax(Pv)]
+                fwmax = fw[np.argmax(Pv)]
+                
+                try:
+                    bu,au = sig.butter(2,fumax/(fs/2))
+                    bv,av = sig.butter(2,fvmax/(fs/2))
+                    bw,aw = sig.butter(2,fwmax/(fs/2))
+                except ValueError:
+                    bu,au = sig.butter(2,.35/32)
+                    bv,av = sig.butter(2,.35/32)
+                    bw,aw = sig.butter(2,.35/32)
+
+                
+                ufilt = sig.filtfilt(bu,au,u[ii,:])
+                vfilt = sig.filtfilt(bv,av,v[ii,:])
+                wfilt = sig.filtfilt(bw,aw,w[ii,:])
+                
+                up[ii,:] = u[ii,:] - ufilt
+                vp[ii,:] = v[ii,:] - vfilt
+                wp[ii,:] = w[ii,:] - wfilt
+        
+        ubar = np.nanmean(u, axis = 1)
+        vbar = np.nanmean(v, axis = 1)
+        dudz = np.gradient(up,np.diff(vectrino['z'])[0],edge_order = 2 , axis = 0)
+        dvdz = np.gradient(vp,np.diff(vectrino['z'])[0],edge_order = 2 , axis = 0)
+        dwdz = np.gradient(wp,np.diff(vectrino['z'])[0],edge_order = 2 , axis = 0)
+        
+        dudt = np.gradient(up,(1./64),edge_order = 2, axis = 1)
+        dvdt = np.gradient(vp,(1./64),edge_order = 2, axis = 1)
+        dwdt = np.gradient(wp,(1./64),edge_order = 2, axis = 1)
+        
+        dudx = np.empty_like(dudz)
+        dudy = np.empty_like(dudz)
+        dvdx = np.empty_like(dvdz)
+        dvdy = np.empty_like(dvdz)
+        dwdx = np.empty_like(dwdz)
+        dwdy = np.empty_like(dwdz)
+        
+        for ii in range(m):
+            dudx[ii,:] = dudt[ii,:]/ubar[ii]
+            dudy[ii,:] = dudt[ii,:]/vbar[ii]
+            dvdx[ii,:] = dvdt[ii,:]/ubar[ii]
+            dvdy[ii,:] = dvdt[ii,:]/vbar[ii]
+            dwdx[ii,:] = dwdt[ii,:]/ubar[ii]
+            dwdy[ii,:] = dwdt[ii,:]/vbar[ii]
+        
+        eps = np.zeros((m,))
+        
+        for ii in range(m):
+            S11 = dudx[ii,:]
+            S12 = 0.5*(dudy[ii,:] + dvdx[ii,:])
+            S13 = 0.5*(dudz[ii,:] + dwdx[ii,:])
+            S21 = copy.deepcopy(S12)
+            S22 = dvdy[ii,:]
+            S23 = 0.5*(dvdz[ii,:] + dwdy[ii,:])
+            S31 = copy.deepcopy(S13)
+            S32 = copy.deepcopy(S23)
+            S33 = dwdz[ii,:]
+            
+            eps[ii] = 2*1e-6*np.nanmean(S11**2 + S12**2 + S13**2 + S21**2 + 
+               S22**2 + S23**2 + S31**2 + S32**2 + S33**2)
+        
+        return eps
+    
+    if method == 'scaling':
+        u = vectrino['velmaj']
+        
+        Tint, Lint, uprime = IntScales(u,fs)
+        
+        eps = uprime**3/Lint
+        
+        return eps
+        

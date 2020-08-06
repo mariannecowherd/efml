@@ -14,6 +14,9 @@ from scipy import interpolate
 import vectrinofuncs as vfs
 import matplotlib.pyplot as plt
 import seaborn as sns
+import scipy
+
+from stokesfunctions import make_stokes
 
 #plot styles
 sns.set_style('ticks')
@@ -156,3 +159,25 @@ for i in range(8):
     
 ax.set_ylim(0,0.015)
 plt.savefig('plots/vel_ens.pdf')
+
+
+#fit stokes function to the whole-burst velocity profiles
+offset = 0.003
+idx = znew>offset
+z = znew[idx]
+
+actual = vel_ens[idx,:]
+popt, pcov = scipy.optimize.curve_fit((make_stokes(phasebins,
+            omega_bar,1/1.9,offset,False)),(z),actual.flatten(order='F'),p0 = 1e-4,maxfev=2000)
+nu_t=popt[0]
+fig,ax = plt.subplots()
+for i in range(8):
+    colorstr = 'C' + str(i)
+    real = actual[:,i]
+    predicted = make_stokes(phasebins,omega_bar,1/1.9,offset,True)(z,nu_t)[:,i]
+    ax.plot(real,z, color = colorstr)
+    ax.plot(predicted,z,':',color=colorstr)
+
+np.nanmean(blparams['ustarwc_meas'])*np.nanmean(blparams['delta'][0,:])
+
+np.nanmean(blparams['ustarwc_meas'])**2 /omega_bar

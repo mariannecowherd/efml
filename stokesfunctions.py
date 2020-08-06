@@ -27,8 +27,8 @@ height = does it vary in height. True gets you nu_t(z), False gets you nu_t
 
 dphi = np.pi/4
 
-def make_stokes(phasebins,omega,u0,plot):
-    def stokes(z,nu,offset):
+def make_stokes(phasebins,omega,u0,offset,plot):
+    def stokes(z,nu):
 
         tf = 1 #how many wave periods to average over
         
