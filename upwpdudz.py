@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Aug  7 16:22:35 2020
+Created on Fri Aug  7 17:02:05 2020
 
 @author: marianne
 
-@title: production
+@title: upwp/dudz
 """
 
 import numpy as np
@@ -38,28 +38,28 @@ blparams = np.load('/Users/Marianne/Documents/GitHub/efml/blparams.npy',allow_pi
 
 dudz = stress['dudz'] #(30, 382, 8)
 upwp = stress['uw'] #(30, 382, 8)
-z = stress['z']
+z = stress['z'] #"the stress" but in a french accent
 delta = blparams['delta']
 ubvec = blparams['ubvec']
+dudz = stress['dudz']
 
-prod = upwp * dudz
+ud = upwp/dudz
 
-#what it should be normalized by
 norm = ubvec
-prod_interp = contour_interp(prod,z,norm)
+ud_interp = contour_interp(ud,z,norm)
 
 #prepare the contour plot
 znew = np.linspace(0.001, 0.015, 15)*100
 dphi = np.pi/4 #Discretizing the phase
 phasebins = np.arange(-3*np.pi/4, np.pi + dphi,dphi)
 
-mesh = np.roll(prod_interp, 1)
+mesh = np.roll(ud_interp, 1) #just chang this line
 z_mesh, y_mesh = np.meshgrid(znew,phasebins)
 lev1 = np.linspace(np.nanmin(mesh),np.nanmax(mesh),20);
 plt.figure(figsize=(15,10))
 cf = plt.contourf(y_mesh, z_mesh, mesh.T, lev1, extend='both')
-cbar = plt.colorbar(cf, label=r'$production/ u_b$')
-cbar.set_ticks(np.arange(0,np.nanmax(lev1),5e-3))
+cbar = plt.colorbar(cf, label=r'$upwp/dudz/u_b$')
+cbar.set_ticks(np.arange(0,np.nanmax(lev1),5e-3)) #and this line
 
 phaselabels = [r'$-\frac{3\pi}{4}$',r'$-\frac{\pi}{2}$', r'$-\frac{\pi}{4}$', 
                r'$0$', r'$\frac{\pi}{4}$', r'$\frac{\pi}{2}$',r'$\frac{3\pi}{4}$',
@@ -81,6 +81,5 @@ plt.ylabel('z (cmab)', fontsize=16)
 plt.tight_layout()
 plt.show()
 
-plt.savefig('plots/production.pdf',dpi=500) #save plot to send to neighbors
+plt.savefig('plots/upwpdudz.pdf',dpi=500) #save plot to send to neighbors
 
- 

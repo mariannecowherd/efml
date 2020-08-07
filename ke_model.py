@@ -37,7 +37,7 @@ stress = np.load('/Users/Marianne/Documents/GitHub/efml/phase_stress.npy', allow
 blparams = np.load('/Users/Marianne/Documents/GitHub/efml/blparams.npy',allow_pickle=True).item()
 
 dudz = stress['dudz'] #(30, 382, 8)
-upwp = stress['uw_wave'] #(30, 382, 8)
+upwp = stress['uw'] #(30, 382, 8)
 z = stress['z'] #"the stress" but in a french accent
 delta = blparams['delta']
 ubvec = blparams['ubvec']
@@ -63,7 +63,7 @@ z_mesh, y_mesh = np.meshgrid(znew,phasebins)
 lev1 = np.linspace(np.nanmin(mesh),np.nanmax(mesh),20);
 plt.figure(figsize=(15,10))
 cf = plt.contourf(y_mesh, z_mesh, mesh.T, lev1, extend='both')
-cbar = plt.colorbar(cf, label=r'$production/ u_b$')
+cbar = plt.colorbar(cf, label=r'$kemodel \nu_T/u_b$')
 cbar.set_ticks(np.arange(0,np.nanmax(lev1),5e-2)) #and this line
 
 phaselabels = [r'$-\frac{3\pi}{4}$',r'$-\frac{\pi}{2}$', r'$-\frac{\pi}{4}$', 
@@ -87,5 +87,3 @@ plt.tight_layout()
 plt.show()
 
 plt.savefig('plots/kemodel.pdf',dpi=500) #save plot to send to neighbors
-
-
