@@ -142,12 +142,16 @@ plt.ylabel('z (cmab)', fontsize=16)
 plt.tight_layout()
 plt.show()
 
+plt.savefig('plots/upwpdudz.pdf',dpi=500)
+
 nu_int = np.zeros(8)
 for i in range(8):
     d = np.roll(delta_mean,1)
     zidx = zinterp<d[i]
     nu_int[i]=np.trapz(-uw_wave_interp[zidx,i],zinterp[zidx])
     
+    
+
     
     
 
