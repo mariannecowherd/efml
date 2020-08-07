@@ -8,6 +8,8 @@ Created on Fri Aug  7 17:02:05 2020
 @title: upwp/dudz
 """
 
+##upwp is weird
+
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
