@@ -11,11 +11,13 @@ Created on Sat Jul 25 15:25:18 2020
 import numpy as np
 import scipy.io as sio
 import scipy.signal as sig
+from scipy import interpolate
 import sys
 sys.path.append('/Users/marianne/Documents/GitHub/efml')
 
 import vectrinofuncs as vfs
 
+#this takes a long time -- need to update to make it more efficient
 
 #phase decomposition
 #using bricker-monismith method 
@@ -35,6 +37,12 @@ uw_wave = np.zeros((30,len(burstnums),len(phasebins)))
 upwp = np.zeros((30,len(burstnums),len(phasebins)))
 z = np.zeros((30,len(burstnums)))
 
+#dissipation
+epsilon = np.zeros((30,len(burstnums),len(phasebins)))
+dudz = np.zeros((30,len(burstnums),len(phasebins)))
+tke = np.zeros((30,len(burstnums),len(phasebins)))
+tke_wave = np.zeros((30,len(burstnums),len(phasebins)))
+
 for n in burstnums:
     try:
         vec = sio.loadmat(filepath + 'vectrino_' + str(n) + '.mat')
@@ -53,10 +61,10 @@ for n in burstnums:
         ubar = np.nanmean(velmajwave,axis = 1)
         vbar = np.nanmean(velminwave,axis = 1)
         w1bar = np.nanmean(vec['velz1'],axis = 1)
-        for ii in range(m):
-            up[:,ii] = velmajwave[:,ii] - ubar
-            vp[:,ii] = velmajwave[:,ii] - vbar
-            w1p[:,ii] = vec['velz1'][:,ii] - w1bar
+        for i in range(m):
+            up[:,i] = velmajwave[:,i] - ubar
+            vp[:,i] = velmajwave[:,i] - vbar
+            w1p[:,i] = vec['velz1'][:,i] - w1bar
 
         
         #spectrum to find wave peak
@@ -90,6 +98,10 @@ for n in burstnums:
             
             waveturb = vfs.get_turb_waves(tempvec, fs,'phase')
             
+            epsilon[:,n,j] = vfs.get_dissipation(tempvec,fs,method = 'Fedd07')
+            tke[:,n,j] = 0.5*(waveturb['uu']  + waveturb['vv'] + waveturb['w1w1'])
+            tke_wave[:,n,j] = 0.5*(waveturb['uu_wave'] + waveturb['vv_wave'] + waveturb['w1w1_wave'])
+                        
             uw_wave[:,n,j] = waveturb['uw1_wave']
             upwp[:,n,j] = waveturb['uw1']
             z[:,n] = vec['z'].flatten()
@@ -97,14 +109,26 @@ for n in burstnums:
             
             uproftemp = np.nanmean(up[:,idx1],axis = 1) 
             profiles[:,n,j] =  uproftemp
-
-        
-        np.save('phase_stress.npy', {'uw_wave': uw_wave, 'uw': upwp, 'z' : z,'freestream': ubar})
+            
+            
+            idxgood = (z[:,n] > 0)
+            tck = interpolate.splrep(np.flipud(z[idxgood,n]),np.flipud(profiles[idxgood,n,j]))
+            znew = np.linspace(np.nanmin(z[idxgood,n]),np.nanmax(z[idxgood,n]),200)
+            utemp =  interpolate.splev(znew,tck, der = 0)
+            dudz_temp = interpolate.splev(znew,tck, der = 1)
+            dudz[:,n,j] = np.interp(z[:,n],znew,dudz_temp) 
     
         
         print(n)
         
     except ValueError:
         continue
-    
+    except TypeError:
+        continue
+
+np.save('phase_stress.npy', {'uw_wave': uw_wave, 'uw': upwp, 'z' : z,
+                                     'freestream': ubar, 'dudz':dudz,
+                                     'epsilon': epsilon, 'tke':tke,
+                                     'tke_wave':tke_wave})
+
 np.save('phaseprofiles.npy', profiles)
