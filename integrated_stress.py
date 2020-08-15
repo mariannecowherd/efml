@@ -13,6 +13,9 @@ waveturb = np.load('waveturb.npy', allow_pickle = True).item()
 bl = np.load('blparams.npy', allow_pickle = True).item() 
 
 idx = list(waveturb.keys())
+del idx[292]
+del idx[203]
+
 allsed = np.load('/Users/gegan/Documents/Python/Research/Erosion_SD6/allsedP1_sd6.npy', 
                  allow_pickle = True).item()
 ubar = allsed['ubar'][:,idx]
@@ -25,6 +28,9 @@ dphi = np.pi/4 #Discretizing the phase
 phasebins = np.arange(-np.pi,np.pi,dphi)
 delta = np.nanmean(bl['delta'][:,idx],axis = 1)
 
+
+
+
 #%% Equation 3.2c
 intmask = ((data['z'][:,idx] < 0.0105) & (data['z'][:,idx] > 0.0045)).astype(int)
 
@@ -35,6 +41,31 @@ data['uw'][np.isnan(data['uw'])] = 0
 data['uw_wave'][np.isnan(data['uw_wave'])] = 0
 data['dudz'][np.isnan(data['dudz'])] = 0
 dubardz[np.isnan(dubardz)] = 0
+
+
+#%% Trying delta from a mixing length model
+
+epsilon = np.array([np.nanmean( np.trapz(data['epsilon'][:,idx,i]*intmask, 
+                                         np.flipud(data['z'][:,idx]), axis = 0)) for i in range(8) ])
+
+k = np.array([np.nanmean(np.trapz(data['tke'][:,idx,i]*intmask,
+                                  np.flipud(data['z'][:,idx]), axis = 0)) for i in range(8) ] )
+
+
+
+# nut = 0.09 * np.array([np.nanmean(np.trapz((data['tke'][:,idx,i]**2/data['epsilon'][:,idx,i])*intmask,
+#                                   np.flipud(data['z'][:,idx]), axis = 0)) for i in range(8) ] )
+nut = 0.09*(k)**2/epsilon
+
+
+# delta_ml = -np.array([np.nanmean(np.trapz((0.09 * (data['tke'][:,idx,i]**2/data['epsilon'][:,idx,i])/(data['dudz'][:,idx,i]))*intmask,
+#                                   np.flipud(data['z'][:,idx]), axis = 0)) for i in range(8) ] )
+# delta_ml = -np.array([np.nanmean(np.trapz(0.09 * (nut[i]/(data['dudz'][:,idx,i]))*intmask,
+#                                   np.flipud(data['z'][:,idx]), axis = 0)) for i in range(8) ] )
+
+delta_ml = np.array([np.nanmean(np.nanmean(0.09 * (nut[i]/(data['dudz'][:,idx,i]))*intmask,
+                                 axis = 0)) for i in range(8) ] )
+
 
 
 # Ps = -np.array([np.nanmean(np.trapz(data['uw'][:,idx,i]*dubardz*intmask,
