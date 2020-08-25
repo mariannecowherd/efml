@@ -16,6 +16,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import binned_statistic,linregress
 
+params = {
+   'axes.labelsize': 28,
+   'font.size': 28,
+   'legend.fontsize': 18,
+   'xtick.labelsize': 28,
+   'ytick.labelsize': 28,
+   'text.usetex': True,
+   'font.family': 'serif'
+   }
+
+
 bl = np.load('blparams.npy', allow_pickle = True).item()
 
 delta = naninterp(np.nanmean(bl['delta'][[1,5],:], axis = 0))
@@ -53,9 +64,10 @@ ax1.errorbar(rplot, dmean, yerr = dstd, fmt = 'o', capsize = 2, color = '0.0')
 ax1.plot(Relin,np.pi/np.sqrt(2*Relin),':', color = '0.3', label = 'laminar')
 ax1.plot(Relin,0.0465*(Relin**(-0.1)), ':', color = '0.7', label = 'smooth turbulent')
 ax1.set_xscale('log')
-# ax1.set_yscale('log')
+ax1.set_xticks([1e2,1e3,1e4])
+ax1.set_yscale('log')
 
-ax1.set_xlabel(r'$Re_w$')
+ax1.set_xlabel(r'$Re_w = \frac{a_b^2 \omega}{\nu}$')
 ax1.set_ylabel(r'$\delta a_b^{-1}$')
 ax1.legend()
 
@@ -104,6 +116,7 @@ ax3.legend()
 ax3.set_ylabel(r'$\delta a_b^{-1}$')
 ax3.set_xlabel(r'$\kappa u_{*wc} u_b^{-1}$')
 
-
+plt.rcParams.update(params)
 fig.set_size_inches(15,5)
 fig.tight_layout(pad = 0.5)
+plt.savefig('/Users/gegan/Desktop/OliverMeetings/8-20/boundary_layer_scaling_2.pdf')

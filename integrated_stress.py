@@ -29,10 +29,8 @@ phasebins = np.arange(-np.pi,np.pi,dphi)
 delta = np.nanmean(bl['delta'][:,idx],axis = 1)
 
 
-
-
 #%% Equation 3.2c
-intmask = ((data['z'][:,idx] < 0.0105) & (data['z'][:,idx] > 0.0045)).astype(int)
+intmask = ((data['z'][:,idx] < 0.0105) & (data['z'][:,idx] > 0.0005)).astype(int)
 
 data['epsilon'][np.isnan(data['epsilon'])] = 0
 data['tke'][np.isnan(data['tke'])] = 0
@@ -45,10 +43,10 @@ dubardz[np.isnan(dubardz)] = 0
 
 #%% Trying delta from a mixing length model
 
-epsilon = np.array([np.nanmean( np.trapz(data['epsilon'][:,idx,i]*intmask, 
+epsilon = np.array([np.nanmean( (1/0.01)*np.trapz(data['epsilon'][:,idx,i]*intmask, 
                                          np.flipud(data['z'][:,idx]), axis = 0)) for i in range(8) ])
 
-k = np.array([np.nanmean(np.trapz(data['tke'][:,idx,i]*intmask,
+k = np.array([np.nanmean(np.trapz((1/0.01)*data['tke'][:,idx,i]*intmask,
                                   np.flipud(data['z'][:,idx]), axis = 0)) for i in range(8) ] )
 
 
