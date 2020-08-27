@@ -107,8 +107,8 @@ def wave_vel_decomp(u,fs,component,plot = False):
     uumax = np.argmax(Suu[(fm>0.1) & (fm < 0.7)]) + offset
 
     if component == 'u':
-        widthratiolow = 6
-        widthratiohigh = 6
+        widthratiolow = 2.333
+        widthratiohigh = 1.4
     elif component == 'v':
         widthratiolow = 5
         widthratiohigh = 3
