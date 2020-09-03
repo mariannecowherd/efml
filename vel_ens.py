@@ -40,14 +40,14 @@ plt.close('all')
 
 
 #data
-blparams = np.load('/Users/Marianne/Documents/GitHub/efml/blparams.npy',allow_pickle=True).item()
+blparams = np.load('blparams.npy',allow_pickle=True).item()
 profiles = np.load('phaseprofiles.npy',allow_pickle=True)
 stress = np.load('phase_stress.npy',allow_pickle=True).item()
 delta = blparams['delta']
 phasebins = blparams['phasebins']
 ustarwc_gm = blparams['ustarwc_gm']
 omega = blparams['omega']
-ubvec = blparams['ubvec']
+ubvec = blparams['ubvec']/np.sqrt(2)
 zs = stress['z']
 u0s = stress['freestream']
 
@@ -145,12 +145,12 @@ delta_plot = 2*vfs.displacement_thickness_interp(vel_ens,znew)
 
 fig,ax = plt.subplots()
 for i in range(8):
-    ax.plot(1.9*vel_ens[:,i],znew) #1.9 is a fudge factor
+    ax.plot(1.0*vel_ens[:,i],znew) #1.9 is a fudge factor
     colorstr = 'C' + str(i)
     ax.plot(omsum[:,i]/ub_bar,z+0.001,':',color = colorstr,label = r'$\theta = $' + phasebins2[i])
     
     #Spline fit to velocity profiles to add BL thickness
-    tck = interpolate.splrep(znew,1.9*vel_ens[:,i], s = 0)
+    tck = interpolate.splrep(znew,1.0*vel_ens[:,i], s = 0)
     zinterp = np.linspace(0.001,0.015,200)
     velinterp = interpolate.splev(zinterp,tck,der = 0)
     
@@ -158,7 +158,7 @@ for i in range(8):
     ax.plot(velinterp[blidx],zinterp[blidx],'o', color = colorstr)
     
 ax.set_ylim(0,0.015)
-plt.savefig('plots/vel_ens.pdf')
+# plt.savefig('plots/vel_ens.pdf')
 
 
 #fit stokes function to the whole-burst velocity profiles
@@ -168,13 +168,13 @@ z = znew[idx]
 
 actual = vel_ens[idx,:]
 popt, pcov = scipy.optimize.curve_fit((make_stokes(phasebins,
-            omega_bar,1/1.9,offset,False)),(z),actual.flatten(order='F'),p0 = 1e-4,maxfev=2000)
+            omega_bar,1,offset,False)),(z),actual.flatten(order='F'),p0 = 1e-4,maxfev=2000)
 nu_t=popt[0]
 fig,ax = plt.subplots()
 for i in range(8):
     colorstr = 'C' + str(i)
     real = actual[:,i]
-    predicted = make_stokes(phasebins,omega_bar,1/1.9,offset,True)(z,nu_t)[:,i]
+    predicted = make_stokes(phasebins,omega_bar,1,offset,True)(z,nu_t)[:,i]
     ax.plot(real,z, color = colorstr)
     ax.plot(predicted,z,':',color=colorstr)
 

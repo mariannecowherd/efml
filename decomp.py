@@ -12,8 +12,8 @@ import numpy as np
 import scipy.io as sio
 import scipy.signal as sig
 from scipy import interpolate
-import sys
-sys.path.append('/Users/marianne/Documents/GitHub/efml')
+# import sys
+# sys.path.append('/Users/marianne/Documents/GitHub/efml')
 
 import vectrinofuncs as vfs
 
@@ -22,7 +22,8 @@ import vectrinofuncs as vfs
 #phase decomposition
 #using bricker-monismith method 
 
-filepath = '/Users/marianne/Desktop/VectrinoSummer/vecfiles/' #location of vectrino data
+# filepath = '/Users/marianne/Desktop/VectrinoSummer/vecfiles/' #location of vectrino data
+filepath = '/Volumes/Seagate Backup Plus Drive/FullDataRepo/VectrinoSummer/'
 
 wavedir = np.load('wavedir.npy',allow_pickle = True)
 
@@ -90,33 +91,33 @@ for n in burstnums:
                 #For phases in the middle
                 idx1 = ((p >= phasebins[j]-(dphi/2)) & (p <= phasebins[j]+(dphi/2))) #measured
             
-            uphase = up[:,idx1]
-            vphase = vp[:,idx1]
+            # uphase = up[:,idx1]
+            # vphase = vp[:,idx1]
         
-            tempvec = {'velmaj': velmajwave[:,idx1], 'velmin': velminwave[:,idx1],
-                           'w1': vec['velz1'][:,idx1], 'w2':vec['velz2'], 'z': vec['z']}
+            # tempvec = {'velmaj': velmajwave[:,idx1], 'velmin': velminwave[:,idx1],
+            #                'w1': vec['velz1'][:,idx1], 'w2':vec['velz2'], 'z': vec['z']}
             
-            waveturb = vfs.get_turb_waves(tempvec, fs,'phase')
+            # waveturb = vfs.get_turb_waves(tempvec, fs,'phase')
             
-            epsilon[:,n,j] = vfs.get_dissipation(tempvec,fs,method = 'Fedd07')
-            tke[:,n,j] = 0.5*(waveturb['uu']  + waveturb['vv'] + waveturb['w1w1'])
-            tke_wave[:,n,j] = 0.5*(waveturb['uu_wave'] + waveturb['vv_wave'] + waveturb['w1w1_wave'])
+            # epsilon[:,n,j] = vfs.get_dissipation(tempvec,fs,method = 'Fedd07')
+            # tke[:,n,j] = 0.5*(waveturb['uu']  + waveturb['vv'] + waveturb['w1w1'])
+            # tke_wave[:,n,j] = 0.5*(waveturb['uu_wave'] + waveturb['vv_wave'] + waveturb['w1w1_wave'])
                         
-            uw_wave[:,n,j] = waveturb['uw1_wave']
-            upwp[:,n,j] = waveturb['uw1']
-            z[:,n] = vec['z'].flatten()
+            # uw_wave[:,n,j] = waveturb['uw1_wave']
+            # upwp[:,n,j] = waveturb['uw1']
+            # z[:,n] = vec['z'].flatten()
     
             
             uproftemp = np.nanmean(up[:,idx1],axis = 1) 
             profiles[:,n,j] =  uproftemp
             
             
-            idxgood = (z[:,n] > 0)
-            tck = interpolate.splrep(np.flipud(z[idxgood,n]),np.flipud(profiles[idxgood,n,j]))
-            znew = np.linspace(np.nanmin(z[idxgood,n]),np.nanmax(z[idxgood,n]),200)
-            utemp =  interpolate.splev(znew,tck, der = 0)
-            dudz_temp = interpolate.splev(znew,tck, der = 1)
-            dudz[:,n,j] = np.interp(z[:,n],znew,dudz_temp) 
+            # idxgood = (z[:,n] > 0)
+            # tck = interpolate.splrep(np.flipud(z[idxgood,n]),np.flipud(profiles[idxgood,n,j]))
+            # znew = np.linspace(np.nanmin(z[idxgood,n]),np.nanmax(z[idxgood,n]),200)
+            # utemp =  interpolate.splev(znew,tck, der = 0)
+            # dudz_temp = interpolate.splev(znew,tck, der = 1)
+            # dudz[:,n,j] = np.interp(z[:,n],znew,dudz_temp) 
     
         
         print(n)
@@ -126,9 +127,9 @@ for n in burstnums:
     except TypeError:
         continue
 
-np.save('phase_stress.npy', {'uw_wave': uw_wave, 'uw': upwp, 'z' : z,
-                                     'freestream': ubar, 'dudz':dudz,
-                                     'epsilon': epsilon, 'tke':tke,
-                                     'tke_wave':tke_wave})
+# np.save('phase_stress.npy', {'uw_wave': uw_wave, 'uw': upwp, 'z' : z,
+#                                      'freestream': ubar, 'dudz':dudz,
+#                                      'epsilon': epsilon, 'tke':tke,
+#                                      'tke_wave':tke_wave})
 
 np.save('phaseprofiles.npy', profiles)

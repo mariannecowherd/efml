@@ -36,6 +36,9 @@ dphi = np.pi/4 #Discretizing the phase
 phasebins = np.arange(-np.pi,np.pi,dphi)
 delta = np.nanmean(bl['delta'][:,idx],axis = 1)
 
+nu_scale = np.nanmean(0.41*bl['delta'][:,idx]*bl['ustarwc_sg17'][idx], axis = 1)
+nu_scale = np.nanmean(10*0.41*bl['omega'][idx]*(bl['delta'][:,idx])**2, axis = 1)
+
 phaselabels = [r'$-\frac{3\pi}{4}$',r'$-\frac{\pi}{2}$', r'$-\frac{\pi}{4}$', 
                r'$0$', r'$\frac{\pi}{4}$', r'$\frac{\pi}{2}$',r'$\frac{3\pi}{4}$',
                r'$\pi$']
@@ -52,7 +55,7 @@ params = {
 
 
 #%% Equation 3.2c
-intmask = ((data['z'][:,idx] < 0.0105) & (data['z'][:,idx] > 0.0045)).astype(int)
+intmask = ((data['z'][:,idx] < 0.0105) & (data['z'][:,idx] > 0.0005)).astype(int)
 
 data['epsilon'][np.isnan(data['epsilon'])] = 0
 data['tke'][np.isnan(data['tke'])] = 0
@@ -79,15 +82,15 @@ nut = 0.09*(k**2)/epsilon
 fig, ax1 = plt.subplots()
 
 color = 'C0'
-ax1.plot(phasebins, delta, color = color)
-ax1.set_ylabel(r'$\delta$ (m)', color = color)
+ax1.plot(phasebins, nu_scale, color = color)
+ax1.set_ylabel(r'$10 \kappa \delta^2 \omega$ (m$^2$ s$^{-1}$)', color = color)
 ax1.ticklabel_format(axis = 'y', style = 'sci', scilimits = (0,0))
 ax1.tick_params(axis='y', labelcolor=color)
 
 color = 'C1'
 ax2 = ax1.twinx()
 ax2.plot(phasebins, nut, color = color)
-ax2.set_ylabel(r'$\nu_T$ (m$^2$ s$^{-1}$)', color = color)
+ax2.set_ylabel(r'$\nu_T = C_\mu k^2 \epsilon^{-1}$ (m$^2$ s$^{-1}$)', color = color)
 ax2.ticklabel_format(axis = 'y', style = 'sci', scilimits = (0,0))
 ax2.tick_params(axis='y', labelcolor=color)
 
@@ -105,8 +108,8 @@ nut = 0.09*kwave**2/epsilon
 fig, ax1 = plt.subplots()
 
 color = 'C0'
-ax1.plot(phasebins, delta, color = color)
-ax1.set_ylabel(r'$\delta$ (m)', color = color)
+ax1.plot(phasebins, nu_scale, color = color)
+ax1.set_ylabel(r'$\kappa u_* \delta$ (m$^2$ s$^{-1}$)', color = color)
 ax1.ticklabel_format(axis = 'y', style = 'sci', scilimits = (0,0))
 ax1.tick_params(axis='y', labelcolor=color)
 
