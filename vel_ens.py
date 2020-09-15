@@ -13,20 +13,14 @@ import scipy.signal as sig
 from scipy import interpolate
 import vectrinofuncs as vfs
 import matplotlib.pyplot as plt
-import seaborn as sns
 import scipy
 
 from stokesfunctions import make_stokes
 
-#plot styles
-sns.set_style('ticks')
-sns.set_context("talk", font_scale=0.9, rc={"lines.linewidth": 1.5})
-sns.set_context(rc = {'patch.linewidth': 0.0})
-
 params = {
    'axes.labelsize': 14,
    'font.size': 14,
-   'legend.fontsize': 12,
+   'legend.fontsize': 10,
    'xtick.labelsize': 14,
    'ytick.labelsize': 14,
    'text.usetex': True,
@@ -143,11 +137,15 @@ phasebins2 = ['$-\\pi$', '$-3\\pi/4$', '$-\\pi/2$','$-\\pi/4$', '$0$',
 
 delta_plot = 2*vfs.displacement_thickness_interp(vel_ens,znew)
 
+phaselabels = [r'$-\frac{3\pi}{4}$',r'$-\frac{\pi}{2}$', r'$-\frac{\pi}{4}$', 
+               r'$0$', r'$\frac{\pi}{4}$', r'$\frac{\pi}{2}$',r'$\frac{3\pi}{4}$',
+               r'$\pi$']
+
 fig,ax = plt.subplots()
 for i in range(8):
-    ax.plot(1.0*vel_ens[:,i],znew) #1.9 is a fudge factor
     colorstr = 'C' + str(i)
-    ax.plot(omsum[:,i]/ub_bar,z+0.001,':',color = colorstr,label = r'$\theta = $' + phasebins2[i])
+    ax.plot((omsum[:,i]/ub_bar),100*(z+0.001),':',color = colorstr)
+    ax.plot(1.0*vel_ens[:,i],znew*100,label = r'$\theta = $' + phasebins2[i])
     
     #Spline fit to velocity profiles to add BL thickness
     tck = interpolate.splrep(znew,1.0*vel_ens[:,i], s = 0)
@@ -155,10 +153,20 @@ for i in range(8):
     velinterp = interpolate.splev(zinterp,tck,der = 0)
     
     blidx = np.argmin(np.abs(delta_plot[i] - zinterp))
-    ax.plot(velinterp[blidx],zinterp[blidx],'o', color = colorstr)
-    
-ax.set_ylim(0,0.015)
-# plt.savefig('plots/vel_ens.pdf')
+    ax.plot(velinterp[blidx],zinterp[blidx]*100,'o', color = colorstr)
+
+
+observed = ax.plot([300, 300], color = 'black', linestyle='-', label='observed')
+model = ax.plot([300,300],color='black',linestyle = ':', label='model')
+handles, labels = ax.get_legend_handles_labels()
+
+ax.legend(handles, labels,ncol=2)
+ax.legend(frameon=False)
+
+ax.set_ylim(0,1.5)
+ax.set_ylabel(r'$z$ (cmab)')
+ax.set_xlabel(r'$\frac{\tilde{u}-\overline{u}}{u_b}$ (cm s$^-1$)')
+plt.savefig('plots/vel_ens.pdf')
 
 
 #fit stokes function to the whole-burst velocity profiles

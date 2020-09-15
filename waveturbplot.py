@@ -9,12 +9,6 @@ Created on Sat Jul 25 14:56:51 2020
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-
-#plot styles
-sns.set_style('ticks')
-sns.set_context("talk", font_scale=0.9, rc={"lines.linewidth": 1.5})
-sns.set_context(rc = {'patch.linewidth': 0.0})
 
 params = {
    'axes.labelsize': 14,

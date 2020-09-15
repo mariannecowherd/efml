@@ -11,7 +11,6 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
 import scipy
-
 import vectrinofuncs as vfs
 
 
@@ -54,13 +53,13 @@ Re_d = ubvec * np.sqrt(2*nu/omega)/nu
 
 
 
-
+#%%
 fig,ax = plt.subplots()
-sources = ['gm','sg17','meas']
-xs = [ustarwc_gm,ustarwc_sg17,ustarwc_meas]/omega
-colors = ['lightgray','gray','black']
+sources = ['gm','meas']
+xs = [ustarwc_gm,ustarwc_meas]/omega
+colors = ['gray','black']
 
-for i in range(3):
+for i in range(len(sources)):
     y=(delta[1,:]+delta[5,:])/2
     x = xs[i]
     x,y = vfs.nanrm2(x,y)
@@ -76,25 +75,26 @@ for i in range(3):
     ci = np.zeros_like(mids)
     for ii in range(len(ci)):
         ci[ii] = ystd[ii]/np.sqrt(np.sum(bnum == (ii+1)))
-    ax.errorbar(mids,ymean,yerr = ci,fmt = 'o', color=colors[i],capsize = 2,label=(sources[i]))
+    ax.errorbar(mids*100,ymean*100,yerr = ci*100,fmt = 'o', color=colors[i],capsize = 2,label=(sources[i]))
     
     model=LinearRegression().fit(x.reshape((-1,1)),y.reshape((-1,1)))
     yfit = (model.intercept_ + model.coef_ * x).flatten(order='F')
     
     print(model.coef_)
     
-    ax.plot(x,yfit,':',color = colors[i], label = 'm='+str(round(model.coef_[0][0],4)))
+    ax.plot(x*100,yfit*100,':',color = colors[i], label = 'm='+str(round(model.coef_[0][0],4)))
     
     #ax.text(0.005,0.004,'slope = ' + str(round(model.coef_[0][0],5)))
     #ax.set_yscale('log')
 
 handles, labels = ax.get_legend_handles_labels()
-order = [3,4,5,0,1,2]
-ax.legend([handles[idx] for idx in order],[labels[idx] for idx in order],ncol=2)
+order = [3,2,1,0]
 
-ax.set_ylabel(r'$\Delta$')
+ax.legend([handles[idx] for idx in order],[labels[idx] for idx in order],ncol=2,frameon=False)
+
+ax.set_ylabel(r'$\Delta$ (cmab)')
     #ax.set_title(str(source))
-ax.set_xlabel(r'$u_*/\omega$')
+ax.set_xlabel(r'$u_*/\omega$ (cm)')
 
 fig.savefig('plots/all_delta.pdf',dpi=500)
 
