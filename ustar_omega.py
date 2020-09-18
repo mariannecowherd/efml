@@ -52,8 +52,6 @@ nu = 1e-6
 Re_d = ubvec * np.sqrt(2*nu/omega)/nu
 
 
-
-#%%
 fig,ax = plt.subplots()
 sources = ['gm','meas']
 xs = [ustarwc_gm,ustarwc_meas]/omega
@@ -75,26 +73,26 @@ for i in range(len(sources)):
     ci = np.zeros_like(mids)
     for ii in range(len(ci)):
         ci[ii] = ystd[ii]/np.sqrt(np.sum(bnum == (ii+1)))
-    ax.errorbar(mids*100,ymean*100,yerr = ci*100,fmt = 'o', color=colors[i],capsize = 2,label=(sources[i]))
     
     model=LinearRegression().fit(x.reshape((-1,1)),y.reshape((-1,1)))
     yfit = (model.intercept_ + model.coef_ * x).flatten(order='F')
     
     print(model.coef_)
-    
-    ax.plot(x*100,yfit*100,':',color = colors[i], label = 'm='+str(round(model.coef_[0][0],4)))
+    ax.errorbar(mids*100,ymean*100,yerr = ci*100,fmt = 'o', color=colors[i],
+                capsize = 2,label=(sources[i]+', m='+str(round(model.coef_[0][0],4))))
+    ax.plot(x*100,yfit*100,':',color = colors[i])#, label = 'm='+str(round(model.coef_[0][0],4)))
     
     #ax.text(0.005,0.004,'slope = ' + str(round(model.coef_[0][0],5)))
     #ax.set_yscale('log')
 
 handles, labels = ax.get_legend_handles_labels()
 order = [3,2,1,0]
-
-ax.legend([handles[idx] for idx in order],[labels[idx] for idx in order],ncol=2,frameon=False)
+ax.legend(handles, labels, frameon=False)
+#ax.legend([handles[idx] for idx in order],[labels[idx] for idx in order],ncol=2,frameon=False)
 
 ax.set_ylabel(r'$\Delta$ (cmab)')
     #ax.set_title(str(source))
-ax.set_xlabel(r'$u_*/\omega$ (cm)')
+ax.set_xlabel(r'$u_*\omega^{-1}$ (cm)')
 
 fig.savefig('plots/all_delta.pdf',dpi=500)
 

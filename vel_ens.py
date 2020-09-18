@@ -76,7 +76,7 @@ for k in range(len(oms)):
     
     #stokes solution
     for jj in range(len(z)):
-        uwave[jj,:] = u0*(np.cos(om*t-phi) - 
+        uwave[jj,:] = (np.cos(om*t-phi) - 
                     np.exp(-np.sqrt(om/(2*nu))*z[jj])*np.cos(
                         (om*t-phi) - np.sqrt(om/(2*nu))*z[jj]))
     huwave = sig.hilbert(np.nanmean(uwave,axis = 0))  #hilbert transform
@@ -140,12 +140,12 @@ delta_plot = 2*vfs.displacement_thickness_interp(vel_ens,znew)
 phaselabels = [r'$-\frac{3\pi}{4}$',r'$-\frac{\pi}{2}$', r'$-\frac{\pi}{4}$', 
                r'$0$', r'$\frac{\pi}{4}$', r'$\frac{\pi}{2}$',r'$\frac{3\pi}{4}$',
                r'$\pi$']
-
+#%%
 fig,ax = plt.subplots()
 for i in range(8):
     colorstr = 'C' + str(i)
-    ax.plot((omsum[:,i]/ub_bar),100*(z+0.001),':',color = colorstr)
-    ax.plot(1.0*vel_ens[:,i],znew*100,label = r'$\theta = $' + phasebins2[i])
+    ax.plot((np.nanmax(vel_ens)*omsum[:,i]),100*(z+0.001),':',color = colorstr)
+    ax.plot(vel_ens[:,i],znew*100,label = phasebins2[i])
     
     #Spline fit to velocity profiles to add BL thickness
     tck = interpolate.splrep(znew,1.0*vel_ens[:,i], s = 0)
@@ -160,15 +160,19 @@ observed = ax.plot([300, 300], color = 'black', linestyle='-', label='observed')
 model = ax.plot([300,300],color='black',linestyle = ':', label='model')
 handles, labels = ax.get_legend_handles_labels()
 
-ax.legend(handles, labels,ncol=2)
-ax.legend(frameon=False)
 
+l1=ax.legend(handles[0:8], labels[0:8],ncol=4,frameon=False,loc='lower right')
+ax.legend(handles[8:10],labels[8:10],ncol=1,frameon=False,loc='lower left')
+ax.add_artist(l1)
 ax.set_ylim(0,1.5)
+
+
+
 ax.set_ylabel(r'$z$ (cmab)')
-ax.set_xlabel(r'$\frac{\tilde{u}-\overline{u}}{u_b}$ (cm s$^-1$)')
-plt.savefig('plots/vel_ens.pdf')
+ax.set_xlabel(r'$\frac{\tilde{u}-\overline{u}}{u_b}$')
+#plt.savefig('plots/vel_ens.pdf')
 
-
+#%%
 #fit stokes function to the whole-burst velocity profiles
 offset = 0.003
 idx = znew>offset
