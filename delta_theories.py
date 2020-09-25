@@ -10,7 +10,6 @@ Created on Fri Aug  7 16:08:43 2020
 
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 import scipy
 from vectrinofuncs import nanrm2
 
@@ -28,11 +27,6 @@ ustarwc_meas = blparams['ustarwc_meas']
 ustarc_meas = blparams[ 'ustarc_meas']
 ubvec = blparams['ubvec']
 
-
-#plot styles
-sns.set_style('ticks')
-sns.set_context("talk", font_scale=0.9, rc={"lines.linewidth": 1.5})
-sns.set_context(rc = {'patch.linewidth': 0.0})
 
 params = {
    'axes.labelsize': 14,

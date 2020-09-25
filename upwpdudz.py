@@ -12,13 +12,7 @@ Created on Fri Aug  7 17:02:05 2020
 
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 from vectrinofuncs import contour_interp
-
-#plot style
-sns.set_style('ticks')
-sns.set_context("talk", font_scale=0.9, rc={"lines.linewidth": 1.5})
-sns.set_context(rc = {'patch.linewidth': 0.0})
 
 params = {
    'axes.labelsize': 14,

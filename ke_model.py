@@ -51,7 +51,7 @@ Cmu = 0.1 #central michigan university
 nu_ke = Cmu * k**2 / epsilon * dudz**2 #(30,384,2) cukes not nukes
 
 norm = ubvec
-nuke_interp = contour_interp(nu_ke,z,norm)
+nuke_interp = contour_interp(nu_ke,z,norm)a
 
 #prepare the contour plot
 znew = np.linspace(0.001, 0.015, 15)*100

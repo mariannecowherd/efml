@@ -9,7 +9,6 @@ Created on Thu Jul 23 11:54:47 2020
 """
 
 import numpy as np
-import seaborn as sns
 import matplotlib
 import matplotlib.pyplot as plt
 import scipy
@@ -19,10 +18,6 @@ import vectrinofuncs as vfs
 import warnings
 warnings.simplefilter('ignore')
 
-#plot styles
-sns.set_style('ticks')
-sns.set_context("talk", font_scale=0.9, rc={"lines.linewidth": 1.5})
-sns.set_context(rc = {'patch.linewidth': 0.0})
 
 
 params = {
@@ -74,7 +69,7 @@ ystd, e, bn  = scipy.stats.binned_statistic(vfs.naninterp(x),vfs.naninterp(y),'s
 for ii in range(ct):
     idx = ((x>=edges[ii]) & (x<edges[ii+1]))
     d_binned[ii,:] = np.nanmean(d[:,0:len(idx)][:,idx],axis=1)
-    
+
 #
 emean = [(edges[i] + edges[i+1])/2 for i in range(len(edges)-1)]
 
@@ -97,7 +92,7 @@ for i in range(len(d_binned)):
 
 plt.colorbar(s_m, label=r'$u_*/\omega$')
 
-phaselabels = [r'$-\pi$',r'$-\frac{3\pi}{4}$',r'$-\frac{\pi}{2}$', r'$-\frac{\pi}{4}$', 
+phaselabels = [r'$-\pi$',r'$-\frac{3\pi}{4}$',r'$-\frac{\pi}{2}$', r'$-\frac{\pi}{4}$',
                r'$0$', r'$\frac{\pi}{4}$', r'$\frac{\pi}{2}$',r'$\frac{3\pi}{4}$' ]
 plt.xticks(ticks = phasebins, labels = phaselabels)
 plt.xlabel(r'$\theta$')
