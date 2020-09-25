@@ -16,13 +16,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import binned_statistic,linregress
 
-bl = np.load('blparams.npy', allow_pickle = True).item()
+bl = np.load('../blparams.npy', allow_pickle = True).item()
 
 delta = naninterp(np.nanmean(bl['delta'][[1,5],:], axis = 0))
 
 laminar = np.sqrt(2*1e-6/bl['omega'])
 
-turb = bl['ustarwc_gm']/bl['omega']
+turb = bl['ustarwc_meas']/bl['omega']
 
 ab = naninterp(bl['ubvec']/bl['omega'])
 
@@ -107,4 +107,4 @@ ax3.set_xticks([1e-2,1e-1])
 
 fig.set_size_inches(15,5)
 fig.tight_layout(pad = 0.5)
-plt.savefig('/Users/gegan/Desktop/OliverMeetings/8-20/boundary_layer_dimensional.pdf')
+# plt.savefig('/Users/gegan/Desktop/OliverMeetings/8-20/boundary_layer_dimensional.pdf')
