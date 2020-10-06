@@ -29,11 +29,11 @@ ubvec = blparams['ubvec']
 
 
 params = {
-   'axes.labelsize': 14,
-   'font.size': 14,
+   'axes.labelsize': 28,
+   'font.size': 28,
    'legend.fontsize': 12,
-   'xtick.labelsize': 14,
-   'ytick.labelsize': 14,
+   'xtick.labelsize': 28,
+   'ytick.labelsize': 28,
    'text.usetex': True,
    'font.family': 'serif',
    'axes.grid' : False,

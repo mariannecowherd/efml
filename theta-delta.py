@@ -96,6 +96,6 @@ phaselabels = [r'$-\pi$',r'$-\frac{3\pi}{4}$',r'$-\frac{\pi}{2}$', r'$-\frac{\pi
                r'$0$', r'$\frac{\pi}{4}$', r'$\frac{\pi}{2}$',r'$\frac{3\pi}{4}$' ]
 plt.xticks(ticks = phasebins, labels = phaselabels)
 plt.xlabel(r'$\theta$')
-plt.ylabel(r'$\Delta~[m]$')
+plt.ylabel(r'$\delta~[m]$')
 
 plt.savefig('plots/theta-delta.pdf', dpi=500)

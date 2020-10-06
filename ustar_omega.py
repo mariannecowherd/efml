@@ -13,13 +13,12 @@ import matplotlib.pyplot as plt
 import scipy
 import vectrinofuncs as vfs
 
-
 params = {
-   'axes.labelsize': 14,
-   'font.size': 14,
-   'legend.fontsize': 12,
-   'xtick.labelsize': 14,
-   'ytick.labelsize': 14,
+   'axes.labelsize': 28,
+   'font.size': 28,
+   'legend.fontsize': 18,
+   'xtick.labelsize': 28,
+   'ytick.labelsize': 28,
    'text.usetex': True,
    'font.family': 'serif',
    'axes.grid' : False,
@@ -27,6 +26,13 @@ params = {
    }
 
 
+#iswavy = np.empty(384,dtype=bool)
+#check if the burst is sufficiently wavy for wave decomposition
+#for N in range(384): iswavy[N] = vfs.iswaves(N,False)
+
+#haswaves  = np.arange(384)[iswavy]
+haswaves=np.load('haswaves.npy')
+iswavy = np.load('iswavy.npy')
 
 plt.rcParams.update(params)
 plt.close('all')
@@ -58,8 +64,9 @@ xs = [ustarwc_gm,ustarwc_meas]/omega
 colors = ['gray','black']
 
 for i in range(len(sources)):
-    y=(delta[1,:]+delta[5,:])/2
+    y=(2*delta[1,:]+2*delta[5,:])/212
     x = xs[i]
+    x,y = x[iswavy],y[iswavy]
     x,y = vfs.nanrm2(x,y)
     x,y = vfs.remove_outliers(x,y,'pca')
 
@@ -72,14 +79,14 @@ for i in range(len(sources)):
     
     ci = np.zeros_like(mids)
     for ii in range(len(ci)):
-        ci[ii] = ystd[ii]/np.sqrt(np.sum(bnum == (ii+1)))
+        ci[ii] = 1.96*ystd[ii]/np.sqrt(np.sum(bnum == (ii+1)))
     
     model=LinearRegression().fit(x.reshape((-1,1)),y.reshape((-1,1)))
     yfit = (model.intercept_ + model.coef_ * x).flatten(order='F')
     
     print(model.coef_)
     ax.errorbar(mids*100,ymean*100,yerr = ci*100,fmt = 'o', color=colors[i],
-                capsize = 2,label=(sources[i]+', m='+str(round(model.coef_[0][0],4))))
+                capsize = 2,label=(sources[i]+r', $C_1$='+str(round(model.coef_[0][0],4))))
     ax.plot(x*100,yfit*100,':',color = colors[i])#, label = 'm='+str(round(model.coef_[0][0],4)))
     
     #ax.text(0.005,0.004,'slope = ' + str(round(model.coef_[0][0],5)))
@@ -90,7 +97,7 @@ order = [3,2,1,0]
 ax.legend(handles, labels, frameon=False)
 #ax.legend([handles[idx] for idx in order],[labels[idx] for idx in order],ncol=2,frameon=False)
 
-ax.set_ylabel(r'$\Delta$ (cmab)')
+ax.set_ylabel(r'$\langle\delta\rangle$ (cmab)')
     #ax.set_title(str(source))
 ax.set_xlabel(r'$u_*\omega^{-1}$ (cm)')
 

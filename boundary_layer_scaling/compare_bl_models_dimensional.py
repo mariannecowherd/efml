@@ -8,9 +8,10 @@ Created on Fri Aug 14 12:53:59 2020
 
 import sys
 sys.path.append('/Users/gegan/Documents/Python/Research/General')
+sys.path.append('/Users/marianne/Documents/GitHub/efml')
 
 import matplotlib.pyplot as plt
-from mylib import naninterp
+#from mylib import naninterp
 
 import matplotlib.pyplot as plt
 import numpy as np

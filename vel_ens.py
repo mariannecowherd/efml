@@ -14,15 +14,18 @@ from scipy import interpolate
 import vectrinofuncs as vfs
 import matplotlib.pyplot as plt
 import scipy
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
+from vectrinofuncs import naninterp
 
 from stokesfunctions import make_stokes
 
 params = {
-   'axes.labelsize': 14,
-   'font.size': 14,
-   'legend.fontsize': 10,
-   'xtick.labelsize': 14,
-   'ytick.labelsize': 14,
+   'axes.labelsize': 28,
+   'font.size': 28,
+   'legend.fontsize': 26,
+   'xtick.labelsize': 28,
+   'ytick.labelsize': 28,
    'text.usetex': True,
    'font.family': 'serif',
    'axes.grid' : False,
@@ -131,65 +134,315 @@ for n in burstnums:
 velidx=np.unique(velidx)
 
 vel_ens = np.nanmean(vel_interp[velidx,:,:],axis=0)
-
+u1 = np.nanmax(abs(vel_ens))
 phasebins2 = ['$-\\pi$', '$-3\\pi/4$', '$-\\pi/2$','$-\\pi/4$', '$0$',
               '$\\pi/4$', '$\\pi/2$', '$3\\pi/4$']
 
 delta_plot = 2*vfs.displacement_thickness_interp(vel_ens,znew)
-
+delta_theory = 2*vfs.displacement_thickness_interp(u1*omsum,z+0.001)
 phaselabels = [r'$-\frac{3\pi}{4}$',r'$-\frac{\pi}{2}$', r'$-\frac{\pi}{4}$', 
                r'$0$', r'$\frac{\pi}{4}$', r'$\frac{\pi}{2}$',r'$\frac{3\pi}{4}$',
                r'$\pi$']
-#%%
-fig,ax = plt.subplots()
+
+fig,ax = plt.subplots(1,2)
+obs_blt = []
+model_blt = []
+obs_y=[]
+model_y=[]
+
 for i in range(8):
+    z2 = z+0.001
     colorstr = 'C' + str(i)
-    ax.plot((np.nanmax(vel_ens)*omsum[:,i]),100*(z+0.001),':',color = colorstr)
-    ax.plot(vel_ens[:,i],znew*100,label = phasebins2[i])
+    ax[0].plot((u1*omsum[:,i]),100*z2,':',color = colorstr)
+    ax[0].plot(vel_ens[:,i],znew*100,label = phasebins2[i])
     
     #Spline fit to velocity profiles to add BL thickness
-    tck = interpolate.splrep(znew,1.0*vel_ens[:,i], s = 0)
+    tck = interpolate.splrep(znew,vel_ens[:,i], s = 0)
     zinterp = np.linspace(0.001,0.015,200)
     velinterp = interpolate.splev(zinterp,tck,der = 0)
     
     blidx = np.argmin(np.abs(delta_plot[i] - zinterp))
-    ax.plot(velinterp[blidx],zinterp[blidx]*100,'o', color = colorstr)
+    ax[0].plot(velinterp[blidx],zinterp[blidx]*100,'o', color = colorstr)
+    
+    theory = u1*omsum[:,i]
+    #blt_theory = vfs.displacement_thickness_interp(theory,z2)
+    #blidxm = np.nanargmax(np.abs(u1*omsum[:,i]))
+    blidxm = np.nanargmin(np.abs(delta_theory[i]-z))
+    
+    obs_blt.append(zinterp[blidx])
+    obs_y.append(velinterp[blidx])
+    model_blt.append(z[blidxm])
+    model_y.append(theory[blidxm])
+    ax[0].plot(theory[blidxm],100*(z2[blidxm]),'o', fillstyle='none', color = colorstr)
 
 
-observed = ax.plot([300, 300], color = 'black', linestyle='-', label='observed')
-model = ax.plot([300,300],color='black',linestyle = ':', label='model')
-handles, labels = ax.get_legend_handles_labels()
+
+observed = ax[0].plot([300, 300], color = 'black', linestyle='-', label='observation')
+model = ax[0].plot([300,300],color='black',linestyle = ':', label='laminar')
+fit = ax[0].plot([300,300],color='black',linestyle = '--',label = 'fit')
+handles, labels = ax[0].get_legend_handles_labels()
+
+ax[0].set_ylim(0,1.5)
+l1=ax[1].legend(handles[0:11], labels[0:11],ncol=1,frameon=False,loc='center left',fontsize=18,bbox_to_anchor=(1, 0.5))
+#l2=ax[1].legend(handles[8:10],labels[8:10],ncol=1,frameon=False,loc='upper right',fontsize=12,bbox_to_anchor=(1.05, 1))
+ax[1].add_artist(l1)
 
 
-l1=ax.legend(handles[0:8], labels[0:8],ncol=4,frameon=False,loc='lower right')
-ax.legend(handles[8:10],labels[8:10],ncol=1,frameon=False,loc='lower left')
-ax.add_artist(l1)
-ax.set_ylim(0,1.5)
-
-
-
-ax.set_ylabel(r'$z$ (cmab)')
-ax.set_xlabel(r'$\frac{\tilde{u}-\overline{u}}{u_b}$')
+ax[0].set_ylabel(r'$z$ (cmab)')
+ax[0].set_xlabel(r'$\frac{\tilde{u}}{u_b}$')
 #plt.savefig('plots/vel_ens.pdf')
-
-#%%
 #fit stokes function to the whole-burst velocity profiles
-offset = 0.003
+offset = 0.0025
 idx = znew>offset
 z = znew[idx]
 
-actual = vel_ens[idx,:]
+actual = vel_ens[idx,:]/np.nanmax(np.abs(vel_ens[idx,:]))
 popt, pcov = scipy.optimize.curve_fit((make_stokes(phasebins,
             omega_bar,1,offset,False)),(z),actual.flatten(order='F'),p0 = 1e-4,maxfev=2000)
 nu_t=popt[0]
-fig,ax = plt.subplots()
+r2 = []
+residual = []
+#fig,ax = plt.subplots()
+predictions = np.zeros((8,13))
 for i in range(8):
     colorstr = 'C' + str(i)
     real = actual[:,i]
     predicted = make_stokes(phasebins,omega_bar,1,offset,True)(z,nu_t)[:,i]
-    ax.plot(real,z, color = colorstr)
-    ax.plot(predicted,z,':',color=colorstr)
+    ax[1].plot(vel_ens[:,i],znew, color = colorstr)
+    ax[1].plot(predicted*np.nanmax(np.abs(vel_ens[idx,:])),z,'--',color=colorstr)
+    r2.append(r2_score(real,predicted))
+    residual.append(mean_squared_error(real,predicted))
+    predictions[i]=predicted
+
+ax[1].set_xlabel(r'$\frac{\tilde{u}}{u_b}$')
+#ax.set_ylabel(r'$z$ (cmab)')
+ax[1].set_ylim(0,1.5/100)
+ax[1].set_yticks([],[])
+
+
+ax[0].set_title('(a)')
+ax[1].set_title('(b)')
+
+#%%
 
 np.nanmean(blparams['ustarwc_meas'])*np.nanmean(blparams['delta'][0,:])
 
 np.nanmean(blparams['ustarwc_meas'])**2 /omega_bar
+
+#dblt = np.array(obs_blt)-np.array(model_blt)
+
+np.nanmean(np.abs(np.array(residual)/np.array(np.sum(actual,axis=0)) * 100))
+np.nanstd(np.abs(np.array(residual)/np.array(np.sum(actual,axis=0)) * 100))
+
+
+np.nanmean(((obs_blt)-np.array(model_blt))/np.array(obs_blt)) *100
+np.nanstd(((obs_blt)-np.array(model_blt))/np.array(obs_blt)) *100
+
+#%%
+model_y.append(model_y[0])
+model_blt.append(model_blt[0])
+obs_y.append(obs_y[0])
+obs_blt.append(obs_blt[0])
+
+my1 = np.array(model_y)[0:5]
+my2 = np.array(model_y)[4:9]
+mb1 = np.array(model_blt)[0:5]
+mb2 = np.array(model_blt)[4:9]
+colorlist1=["C0","C1","C2","C3","C4"]
+colorlist2=["C4","C5","C6","C7","C0"]
+
+#Spline fit
+tck = interpolate.splrep(my1,mb1, s = 0)
+zinterp = np.linspace(np.nanmin(my1),np.nanmax(my1),50)
+mb_interp = interpolate.splev(zinterp,tck,der = 0)
+
+ax[0].plot(zinterp,(mb_interp+0.001)*100,linestyle='dashdot',color='k',linewidth=0.8)
+#lc = plotcolors(zinterp,100*(mb_interp+0.001),colorlist1)
+#ax[0].add_collection(lc)
+
+tck = interpolate.splrep(np.flipud(my2),np.flipud(mb2), s = 0)
+zinterp = np.linspace(np.nanmin(my2),np.nanmax(my2),50)
+mb_interp = interpolate.splev(zinterp,tck,der = 0)
+
+ax[0].plot(zinterp,(mb_interp+0.001)*100,linestyle='dashdot',color='k',linewidth=0.8)
+#lc = plotcolors(zinterp,100*(mb_interp+0.001),np.flipud(colorlist2))
+#ax[0].add_collection(lc)
+
+oy1 = np.array(obs_y)[0:5]
+oy2 = np.array(obs_y)[4:9]
+ob1 = np.array(obs_blt)[0:5]
+ob2 = np.array(obs_blt)[4:9]
+
+#Spline fit
+tck = interpolate.splrep(oy1,ob1, s = 0)
+zinterp = np.linspace(np.nanmin(oy1),np.nanmax(oy1),50)
+ob_interp = interpolate.splev(zinterp,tck,der = 0)
+
+ax[0].plot(zinterp,(ob_interp)*100,linestyle='dashdot',color='k',linewidth=0.8)
+#lc = plotcolors(zinterp,ob_interp*100,colorlist1)
+#ax[0].add_collection(lc)
+
+tck = interpolate.splrep(np.flipud(oy2),np.flipud(ob2), s = 0)
+zinterp = np.linspace(np.nanmin(oy2),np.nanmax(oy2),50)
+ob_interp = interpolate.splev(zinterp,tck,der = 0)
+
+ax[0].plot(zinterp,(ob_interp)*100,linestyle='dashdot',color='k',linewidth=0.8)
+#lc = plotcolors(zinterp,ob_interp*100,np.flipud(colorlist2))
+#ax[0].add_collection(lc)
+
+
+
+
+#%%
+import matplotlib.pyplot as plt
+
+import numpy as np
+from matplotlib import collections  as mc
+from scipy.interpolate import interp1d
+from matplotlib.colors import colorConverter
+
+def colored_line_segments(xs,ys,color,mid_colors=False):
+    if isinstance(color,str):
+        color = colorConverter.to_rgba(color)[:-1]
+        color = np.array([color for i in range(len(xs))])        
+    segs = []
+    seg_colors = []    
+    lastColor = [color[0][0],color[0][1],color[0][2]]    
+    start = [xs[0],ys[0]]
+    end = [xs[0],ys[0]]        
+    for x,y,c in zip(xs,ys,color):
+        if mid_colors:
+            seg_colors.append([(chan+lastChan)*.5 for chan,lastChan in zip(c,lastColor)])        
+        else:   
+            seg_colors.append(c)        
+        lastColor = [c[0],c[1],c[2]]            
+        start = [end[0],end[1]]
+        end = [x,y]
+        segs.append([start,end])
+    colors = [(*color,1) for color in seg_colors]
+    lc = mc.LineCollection(segs, colors=colors)
+    return lc, segs, colors
+
+def segmented_resample(xs,ys,color,n_resample=50,mid_colors=False):    
+    n_points = len(xs)
+    if isinstance(color,str):
+        color = colorConverter.to_rgba(color)[:-1]
+        color = np.array([color for i in range(n_points)])   
+    n_segs = (n_points-1)*(n_resample-1)        
+    xsInterp = np.linspace(0,1,n_resample)
+    segs = []
+    seg_colors = []
+    hiResXs = [xs[0]]
+    hiResYs = [ys[0]]
+    RGB = color.swapaxes(0,1)
+    for i in range(n_points-1):
+        fit_xHiRes = interp1d([0,1],xs[i:i+2])
+        fit_yHiRes = interp1d(xs[i:i+2],ys[i:i+2])
+        
+        xHiRes = fit_xHiRes(xsInterp)
+        yHiRes = fit_yHiRes(xHiRes)    
+        
+        hiResXs = hiResXs+list(xHiRes[1:])
+        hiResYs = hiResYs+list(yHiRes[1:])
+        
+        R_HiRes = interp1d([0,1],RGB[0][i:i+2])(xHiRes)        
+        G_HiRes = interp1d([0,1],RGB[1][i:i+2])(xHiRes)      
+        B_HiRes = interp1d([0,1],RGB[2][i:i+2])(xHiRes)       
+                        
+        lastColor = [R_HiRes[0],G_HiRes[0],B_HiRes[0]]        
+        
+        start = [xHiRes[0],yHiRes[0]]
+        end = [xHiRes[0],yHiRes[0]]
+        if mid_colors: seg_colors.append([R_HiRes[0],G_HiRes[0],B_HiRes[0]])
+        for x,y,r,g,b in zip(xHiRes[1:],yHiRes[1:],R_HiRes[1:],G_HiRes[1:],B_HiRes[1:]):
+            if mid_colors:
+                seg_colors.append([(chan+lastChan)*.5 for chan,lastChan in zip((r,g,b),lastColor)])
+            else:            
+                seg_colors.append([r,g,b])
+            
+            lastColor = [r,g,b]            
+            start = [end[0],end[1]]
+            end = [x,y]
+            segs.append([start,end])
+
+    colors = [(*color,1) for color in seg_colors]    
+    return segs, colors, [hiResXs,hiResYs]        
+
+def faded_segment_resample(xs,ys,color,fade_len=20,n_resample=100,direction='Head'):      
+    segs, colors, hiResData = segmented_resample(xs,ys,color,n_resample)    
+    n_segs = len(segs)   
+    if fade_len>len(segs):
+        fade_len=n_segs    
+    if direction=='Head':
+        #Head fade
+        alphas = np.concatenate((np.zeros(n_segs-fade_len),np.linspace(0,1,fade_len)))
+    else:        
+        #Tail fade
+        alphas = np.concatenate((np.linspace(1,0,fade_len),np.zeros(n_segs-fade_len)))
+    colors = [(*color[:-1],alpha) for color,alpha in zip(colors,alphas)]
+    lc = mc.LineCollection(segs, colors=colors)
+    return segs, colors, hiResData 
+
+    
+#if __name__ == "__main__":
+def plotcolors(zinterp,ob_interp,colorlist):
+    NPOINTS = len(ob_interp)
+    RESAMPLE = len(ob_interp)
+    N_FADE = int(RESAMPLE*NPOINTS*0.5)
+    N_SEGS = (NPOINTS-1)*(RESAMPLE-1)  
+
+    SHOW_POINTS_AXI_12 = True
+    SHOW_POINTS_AXI_34 = True
+
+    np.random.seed(11)
+    #xs = np.random.rand(NPOINTS)
+    #ys = np.random.rand(NPOINTS)
+    xs = (zinterp + np.abs(np.nanmin(zinterp)))/np.nanmax(np.abs(zinterp))/2
+    ys = (ob_interp + np.abs(np.nanmin(ob_interp)))/np.nanmax(np.abs(ob_interp))/1.5
+
+    COLOR='b'
+
+    MARKER = '.'
+    #MARKER_COLOR = 'k'
+    #CMAP = plt.get_cmap('hsv')
+    #colorlist=["blue","orange","green","red","purple","brown","pink","gray"]
+    CMAP = LinearSegmentedColormap.from_list("mymap",colorlist)
+    COLORS = np.array([CMAP(i)[:-1] for i in np.linspace(0,1,NPOINTS)])
+    MARKER_COLOR = COLORS
+    
+    N_SCATTER = (NPOINTS-1)*(RESAMPLE-1)+1
+    COLORS_LONG = np.array([CMAP(i)[:-1] for i in np.linspace(1/N_SCATTER,1,N_SCATTER)])
+
+    #fig = plt.figure(figsize=(12,8),dpi=100)
+    #ax1 = fig.add_subplot(221) # original data
+    lc, segs, colors = colored_line_segments(zinterp,ob_interp,COLORS,True)
+    return (lc)
+    #if SHOW_POINTS_AXI_12: ax1.scatter(xs,ys,marker=MARKER,color=COLORS)
+    #ax1.add_collection(lc)
+    #ax1.text(.05,1.05,'Original Data')
+    #ax1.set_ylim(0,1.2)
+
+    #ax2 = fig.add_subplot(222, sharex=ax1, sharey=ax1) # resampled data
+    #segs, colors, hiResData   = segmented_resample(xs,ys,COLORS,RESAMPLE)
+    #if SHOW_POINTS_AXI_12: ax2.scatter(hiResData[0],hiResData[1],marker=MARKER,color=COLORS_LONG)
+    #return (mc.LineCollection(segs, colors=colors))
+    #ax2.text(.05,1.05,'Original Data - Resampled')
+    #ax2.set_ylim(0,1.2)
+
+    #ax3 = fig.add_subplot(223, sharex=ax1, sharey=ax1) # resampled with linear alpha fade start to finish
+
+    #segs, colors, hiResData = faded_segment_resample(xs,ys,COLORS,fade_len=RESAMPLE*NPOINTS,n_resample=RESAMPLE,direction='Head')
+    #if SHOW_POINTS_AXI_34: ax3.scatter(hiResData[0],hiResData[1],marker=MARKER,color=COLORS_LONG)
+    #return (mc.LineCollection(segs, colors=colors))
+    #ax3.text(.05,1.05,'Resampled - w/Full length fade')
+    #ax3.set_ylim(0,1.2)
+
+    #ax4 = fig.add_subplot(224, sharex=ax1, sharey=ax1) # resampled with linear alpha fade N_FADE long
+    #segs, colors, hiResData = faded_segment_resample(xs,ys,COLORS,fade_len=N_FADE,n_resample=RESAMPLE,direction='Head')
+    #if SHOW_POINTS_AXI_34: ax4.scatter(hiResData[0],hiResData[1],marker=MARKER,color=COLORS_LONG)
+    #ax4.add_collection(mc.LineCollection(segs, colors=colors))
+    #ax4.text(.05,1.05,'Resampled - w/{} point fade'.format(N_FADE))
+    #ax4.set_ylim(0,1.2)
+
+    #fig.savefig('fadeSegmentedColorLine.png')
+    #plt.show()
