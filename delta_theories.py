@@ -5,17 +5,23 @@ Created on Fri Aug  7 16:08:43 2020
 
 @author: marianne
 
-@title: d1d2plot
+@title: delta_theories
 """
+
+'''
+This code calculates displacement thickness delta scalings and compares them
+to observed thickness from the field campaign
+'''
 
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy
 from vectrinofuncs import nanrm2
 
-
-stress = np.load('/Users/Marianne/Documents/GitHub/efml/phase_stress.npy', allow_pickle = True).item()
-blparams = np.load('/Users/Marianne/Documents/GitHub/efml/blparams.npy',allow_pickle=True).item()
+#location of stress profiles
+filepath = '/Users/Marianne/Documents/GitHub/efml/'
+stress = np.load(filepath + 'phase_stress.npy', allow_pickle = True).item()
+blparams = np.load(filepath + 'blparams.npy',allow_pickle=True).item()
 
 delta = blparams['delta']
 omega = blparams['omega']
@@ -45,9 +51,8 @@ params = {
 plt.rcParams.update(params)
 plt.close('all')
 
-nu=1e-5
+nu=1e-6
 Re_d = ubvec * np.sqrt(2*nu/omega)/nu
-
 
 ct=50
 

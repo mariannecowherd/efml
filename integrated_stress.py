@@ -4,19 +4,21 @@
 Created on Sun Aug  9 14:43:26 2020
 
 @author: gegan
+
+@title: integrated_stress
 """
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 waveturb = np.load('waveturb.npy', allow_pickle = True).item()
-bl = np.load('blparams.npy', allow_pickle = True).item() 
+bl = np.load('blparams.npy', allow_pickle = True).item()
 
 idx = list(waveturb.keys())
 del idx[292]
 del idx[203]
 
-allsed = np.load('/Users/gegan/Documents/Python/Research/Erosion_SD6/allsedP1_sd6.npy', 
+allsed = np.load('/Users/gegan/Documents/Python/Research/Erosion_SD6/allsedP1_sd6.npy',
                  allow_pickle = True).item()
 ubar = allsed['ubar'][:,idx]
 z = allsed['z'][:,idx]
@@ -43,7 +45,7 @@ dubardz[np.isnan(dubardz)] = 0
 
 #%% Trying delta from a mixing length model
 
-epsilon = np.array([np.nanmean( (1/0.01)*np.trapz(data['epsilon'][:,idx,i]*intmask, 
+epsilon = np.array([np.nanmean( (1/0.01)*np.trapz(data['epsilon'][:,idx,i]*intmask,
                                          np.flipud(data['z'][:,idx]), axis = 0)) for i in range(8) ])
 
 k = np.array([np.nanmean(np.trapz((1/0.01)*data['tke'][:,idx,i]*intmask,
@@ -72,7 +74,7 @@ delta_ml = np.array([np.nanmean(np.nanmean(0.09 * (nut[i]/(data['dudz'][:,idx,i]
 # Pw = -np.array([np.nanmean(np.trapz(data['uw'][:,idx,i]*data['dudz'][:,idx,i]*intmask,
 #                                   np.flipud(data['z'][:,idx]), axis = 0)) for i in range(8) ] )
 
-# epsilon = np.array([np.nanmean( np.trapz(data['epsilon'][:,idx,i]*intmask, 
+# epsilon = np.array([np.nanmean( np.trapz(data['epsilon'][:,idx,i]*intmask,
 #                                          np.flipud(data['z'][:,idx]), axis = 0)) for i in range(8) ])
 
 
@@ -122,7 +124,7 @@ delta_ml = np.array([np.nanmean(np.nanmean(0.09 * (nut[i]/(data['dudz'][:,idx,i]
 
 # ax.legend()
 
-#%% Equation 3.2 b 
+#%% Equation 3.2 b
 # kwave = np.array([np.nanmean(np.trapz(data['tke_wave'][:,idx,i]*intmask,
 #                                   np.flipud(data['z'][:,idx]), axis = 0)) for i in range(8) ] )
 
@@ -135,7 +137,7 @@ delta_ml = np.array([np.nanmean(np.nanmean(0.09 * (nut[i]/(data['dudz'][:,idx,i]
 # Ptw = -np.array([np.nanmean(np.trapz(data['uw'][:,idx,i]*data['dudz'][:,idx,i]*intmask,
 #                                   np.flipud(data['z'][:,idx]), axis = 0)) for i in range(8) ] )
 
-# epsilon = np.array([np.nanmean( np.trapz(data['epsilon'][:,idx,i]*intmask, 
+# epsilon = np.array([np.nanmean( np.trapz(data['epsilon'][:,idx,i]*intmask,
 #                                          np.flipud(data['z'][:,idx]), axis = 0)) for i in range(8) ])
 
 
@@ -147,8 +149,8 @@ delta_ml = np.array([np.nanmean(np.nanmean(0.09 * (nut[i]/(data['dudz'][:,idx,i]
 
 # ax.legend()
 
-#%% 
-epsilon = np.array([np.nanmean( np.trapz(data['epsilon'][:,idx,i]*intmask, 
+#%%
+epsilon = np.array([np.nanmean( np.trapz(data['epsilon'][:,idx,i]*intmask,
                                          np.flipud(data['z'][:,idx]), axis = 0)) for i in range(8) ])
 
 k = np.array([np.nanmean(np.trapz(data['tke'][:,idx,i]*intmask,
