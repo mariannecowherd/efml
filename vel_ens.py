@@ -37,9 +37,9 @@ plt.close('all')
 
 
 #data
-blparams = np.load('blparams.npy',allow_pickle=True).item()
-profiles = np.load('phaseprofiles.npy',allow_pickle=True)
-stress = np.load('phase_stress.npy',allow_pickle=True).item()
+blparams = np.load('data/blparams.npy',allow_pickle=True).item()
+profiles = np.load('data/phaseprofiles.npy',allow_pickle=True)
+stress = np.load('data/phase_stress.npy',allow_pickle=True).item()
 delta = blparams['delta']
 phasebins = blparams['phasebins']
 ustarwc_gm = blparams['ustarwc_gm']
