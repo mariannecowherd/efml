@@ -31,16 +31,16 @@ params = {
 #for N in range(384): iswavy[N] = vfs.iswaves(N,False)
 
 #haswaves  = np.arange(384)[iswavy]
-haswaves=np.load('haswaves.npy')
-iswavy = np.load('iswavy.npy')
+haswaves=np.load('data/haswaves.npy')
+iswavy = np.load('data/iswavy.npy')
 
 plt.rcParams.update(params)
 plt.close('all')
 
 
 
-blparams = np.load('/Users/Marianne/Documents/GitHub/efml/blparams.npy',allow_pickle=True).item()
-delta = blparams['delta']
+blparams = np.load('data/blparams.npy',allow_pickle=True).item()
+delta = 2*blparams['delta']
 phasebins = blparams['phasebins']
 ustarwc_sg17 = blparams['ustarwc_sg17']
 ustarwc_gm = blparams['ustarwc_gm']
@@ -64,7 +64,7 @@ xs = [ustarwc_gm,ustarwc_meas]/omega
 colors = ['gray','black']
 
 for i in range(len(sources)):
-    y=(2*delta[1,:]+2*delta[5,:])/212
+    y=(delta[1,:]+delta[5,:])/2
     x = xs[i]
     x,y = x[iswavy],y[iswavy]
     x,y = vfs.nanrm2(x,y)
@@ -101,5 +101,5 @@ ax.set_ylabel(r'$\langle\delta\rangle$ (cmab)')
     #ax.set_title(str(source))
 ax.set_xlabel(r'$u_*\omega^{-1}$ (cm)')
 
-fig.savefig('plots/all_delta.pdf',dpi=500)
+# fig.savefig('plots/all_delta.pdf',dpi=500)
 
