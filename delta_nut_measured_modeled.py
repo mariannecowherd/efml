@@ -168,10 +168,10 @@ for jj in range(len(phasebins)):
 
 #%% Measured boundary layer thickness scaling
 
-delta = np.nanmean(1.5*bl['delta'][:,idx],axis = 1)
+delta = np.nanmean(2*bl['delta'][:,idx],axis = 1)
 # c1_ustar = 1
 # c1_ustar = 0.0971
-c1_ustar = .16
+c1_ustar = 2
 nu_scale = np.nanmean((1/c1_ustar)*0.41*bl['omega'][idx]*(1.5*bl['delta'][:,idx])**2, axis = 1)
 nu_scale_ci = 1.96*np.nanstd((1/c1_ustar)*0.41*bl['omega'][idx]*(bl['delta'][:,idx])**2, axis = 1)/np.sqrt(len(idx))
 
@@ -239,7 +239,7 @@ ax1.errorbar(phasebins, nut, yerr = nut_ci, fmt = 'o', color = color,
           capsize = 2, label = r'$\nu_{k \varepsilon} = C_\mu k^2 \varepsilon^{-1}$')
 ax1.plot(phasenew,nut_int,'-', color = color)
 
-ax1.set_ylim(1e-4,3.5e-4)
+ax1.set_ylim(8e-5,3.5e-4)
 ax1.legend(loc = 'upper right')
 ax1.set_title('(a)')
 
@@ -316,4 +316,4 @@ ax2.annotate(s = r'$C_\mu k \epsilon^{-1} = $' + ' {:.3f} s'.format(t_turb),
 fig.set_size_inches(13,6)
 fig.tight_layout(pad = 0.5)
 plt.rcParams.update(params)
-# plt.savefig('delta_nut_comparison.pdf')
+# plt.savefig('plots/delta_nut_comparison.pdf')

@@ -59,7 +59,7 @@ Re_d = ubvec * np.sqrt(2*nu/omega)/nu
 
 
 fig,ax = plt.subplots()
-sources = ['gm','meas']
+sources = ['GM','Meas']
 xs = [ustarwc_gm,ustarwc_meas]/omega
 colors = ['gray','black']
 
@@ -86,7 +86,7 @@ for i in range(len(sources)):
     
     print(model.coef_)
     ax.errorbar(mids*100,ymean*100,yerr = ci*100,fmt = 'o', color=colors[i],
-                capsize = 2,label=(sources[i]+r', $C_1$='+str(round(model.coef_[0][0],4))))
+                capsize = 2,label=(sources[i]+r', $C_1$='+str(round(model.coef_[0][0],2))))
     ax.plot(x*100,yfit*100,':',color = colors[i])#, label = 'm='+str(round(model.coef_[0][0],4)))
     
     #ax.text(0.005,0.004,'slope = ' + str(round(model.coef_[0][0],5)))
@@ -97,9 +97,10 @@ order = [3,2,1,0]
 ax.legend(handles, labels, frameon=False)
 #ax.legend([handles[idx] for idx in order],[labels[idx] for idx in order],ncol=2,frameon=False)
 
-ax.set_ylabel(r'$\langle\delta\rangle$ (cmab)')
+ax.set_ylabel(r'$\langle\delta\rangle$ (cm)')
     #ax.set_title(str(source))
 ax.set_xlabel(r'$u_*\omega^{-1}$ (cm)')
-
-# fig.savefig('plots/all_delta.pdf',dpi=500)
+fig.set_size_inches(8,6)
+fig.tight_layout(pad = 0.5)
+fig.savefig('plots/ustar_omega.pdf',dpi=500)
 
