@@ -145,6 +145,9 @@ tke_phase_model = np.zeros((len(phasebins),))
 eps_phase_model = np.zeros((len(phasebins),))
 delta_model = np.zeros((len(phasebins),))
 
+nut_const_model =  np.zeros((len(phasebins),))
+nut_const_ci_model = np.zeros((len(phasebins),))
+
 kappa = 0.41
 
 for jj in range(len(phasebins)):
@@ -164,6 +167,7 @@ for jj in range(len(phasebins)):
     tke_phase_model[jj] = np.mean(tke_model[:20,idx1])
     eps_phase_model[jj] = np.mean(eps_model[:20,idx1])
     delta_model[jj] = np.mean(delta_full[idx1])
+    nut_const_model[jj] = 0.09*np.mean(tke_model[0,idx1])**2/np.nanmean(eps_model[0,:])
 # delta_model = displacement_thickness(uprof_model,z)
 
 #%% Measured boundary layer thickness scaling
@@ -171,12 +175,12 @@ for jj in range(len(phasebins)):
 delta = np.nanmean(2*bl['delta'][:,idx],axis = 1)
 # c1_ustar = 1
 # c1_ustar = 0.0971
-c1_ustar = 2
-nu_scale = np.nanmean((1/c1_ustar)*0.41*bl['omega'][idx]*(1.5*bl['delta'][:,idx])**2, axis = 1)
-nu_scale_ci = 1.96*np.nanstd((1/c1_ustar)*0.41*bl['omega'][idx]*(bl['delta'][:,idx])**2, axis = 1)/np.sqrt(len(idx))
+c1_ustar = .2
+nu_scale = np.nanmean((1/c1_ustar)*0.41*bl['omega'][idx]*(2*bl['delta'][:,idx])**2, axis = 1)
+nu_scale_ci = 1.96*np.nanstd((1/c1_ustar)*0.41*bl['omega'][idx]*(2*bl['delta'][:,idx])**2, axis = 1)/np.sqrt(len(idx))
 
 # masking k and epsilon
-intmask = ((phase_data['z'][:,idx] < 0.0105) & (phase_data['z'][:,idx] > 0.0005)).astype(int)
+intmask = ((phase_data['z'][:,idx] < 0.0105) & (phase_data['z'][:,idx] > 0.0025)).astype(int)
 
 phase_data['epsilon'][np.isnan(phase_data['epsilon'])] = 0
 phase_data['tke'][np.isnan(phase_data['tke'])] = 0
@@ -184,11 +188,31 @@ phase_data['tke'][np.isnan(phase_data['tke'])] = 0
 # nu_t from k-epsilon model 
 scale = (1/(np.sum(intmask,axis = 0)*0.001))
 
-epsilon = np.array([np.nanmean( scale*np.trapz(phase_data['epsilon'][:,idx,i]*intmask, 
-                                         np.flipud(phase_data['z'][:,idx]), axis = 0)) for i in range(8) ])
+#Old method with bad epsilon
+# epsilon = np.array([np.nanmean( scale*np.trapz(phase_data['epsilon'][:,idx,i]*intmask, 
+#                                          np.flipud(phase_data['z'][:,idx]), axis = 0)) for i in range(8) ])
 
-epsilon_std = np.array([np.nanstd( scale*np.trapz(phase_data['epsilon'][:,idx,i]*intmask, 
-                                         np.flipud(phase_data['z'][:,idx]), axis = 0)) for i in range(8) ])
+
+
+# epsilon_std = np.array([np.nanstd( scale*np.trapz(phase_data['epsilon'][:,idx,i]*intmask, 
+#                                          np.flipud(phase_data['z'][:,idx]), axis = 0)) for i in range(8) ])
+
+#New method with constant epsilon
+epsilon_raw = np.load('data/epsilon.npy', allow_pickle = True).item()['epsilon']
+
+epsilon = np.array([np.nanmean( scale*np.trapz(epsilon_raw[:,idx]*intmask, 
+                                          np.flipud(phase_data['z'][:,idx]), axis = 0)) for i in range(8) ])
+
+epsilon_std = np.array([np.nanstd( scale*np.trapz(epsilon_raw[:,idx]*intmask, 
+                                          np.flipud(phase_data['z'][:,idx]), axis = 0)) for i in range(8) ])
+
+# #New method with phase varying structure function epsilon
+# epsilon_raw = np.load('data/eps_sf.npy', allow_pickle = True)
+
+# epsilon = np.nanmean(epsilon_raw[idx,:], axis = 0)
+
+# epsilon_std =  np.nanstd(epsilon_raw[idx,:], axis = 0)
+
 
 k = np.array([np.nanmean(scale*np.trapz(phase_data['tke'][:,idx,i]*intmask,
                                   np.flipud(phase_data['z'][:,idx]), axis = 0)) for i in range(8) ] )
@@ -239,7 +263,7 @@ ax1.errorbar(phasebins, nut, yerr = nut_ci, fmt = 'o', color = color,
           capsize = 2, label = r'$\nu_{k \varepsilon} = C_\mu k^2 \varepsilon^{-1}$')
 ax1.plot(phasenew,nut_int,'-', color = color)
 
-ax1.set_ylim(8e-5,3.5e-4)
+# ax1.set_ylim(8e-5,3.5e-4)
 ax1.legend(loc = 'upper right')
 ax1.set_title('(a)')
 
@@ -265,6 +289,9 @@ nu_scale_int = interpolate.splev(phasenew,tck)
 
 tck = interpolate.splrep(phasebins,nut_phase_model)
 nut_int = interpolate.splev(phasenew,tck)
+
+tck = interpolate.splrep(phasebins, nut_const_model)
+nut_const_int = interpolate.splev(phasenew, tck)
 
 corr = np.correlate(sig.detrend(nu_scale_int),sig.detrend(nut_int), mode = 'full')[len(nu_scale_int)-1:]
 # corr = np.correlate(sig.detrend(nu_scale_int)/np.std(nu_scale_int),sig.detrend(nut_int)/np.std(nut_int), mode = 'full')[len(nu_scale_int)-1:]
@@ -295,13 +322,16 @@ color = '0.7'
 # ax2 = ax1.twinx()
 ax2.errorbar(phasebins, nut_phase_model, yerr = nut_ci_model, fmt = 'o', color = color, 
           capsize = 2, label = r'$\nu_{k \varepsilon} = C_\mu k^2 \varepsilon^{-1}$')
+
+ax2.plot(phasebins, nut_const_model, 'o', color = color)
+ax2.plot(phasenew, nut_const_int, ':', color = color)
 ax2.plot(phasenew,nut_int,'-', color = color)
 
 ax2.set_xticks(phasebins)
 ax2.set_xticklabels(phaselabels)
 ax2.legend(loc = 'upper right')
 ax2.set_title('(b)')
-ax2.set_ylim(-.2e-5,1e-5)
+# ax2.set_ylim(-.2e-5,1e-5)
 
 
 # ax1.annotate(s = '', xy = (-0.45,2.5e-4), xytext = (-0.45 + lag_idx*(phasenew[1] - phasenew[0]),2.5e-4),
