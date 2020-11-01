@@ -260,10 +260,10 @@ ax1.ticklabel_format(axis = 'y', style = 'sci', scilimits = (0,0))
 color = '0.7'
 # ax2 = ax1.twinx()
 ax1.errorbar(phasebins, nut, yerr = nut_ci, fmt = 'o', color = color, 
-          capsize = 2, label = r'$\nu_{k \varepsilon} = C_\mu k^2 \varepsilon^{-1}$')
+          capsize = 2, label = r'$\nu_{k \varepsilon} = C_\mu k^2 \langle\varepsilon\rangle^{-1}$')
 ax1.plot(phasenew,nut_int,'-', color = color)
 
-# ax1.set_ylim(8e-5,3.5e-4)
+ax1.set_ylim(1.4e-4,4.8e-4)
 ax1.legend(loc = 'upper right')
 ax1.set_title('(a)')
 
@@ -324,14 +324,15 @@ ax2.errorbar(phasebins, nut_phase_model, yerr = nut_ci_model, fmt = 'o', color =
           capsize = 2, label = r'$\nu_{k \varepsilon} = C_\mu k^2 \varepsilon^{-1}$')
 
 ax2.plot(phasebins, nut_const_model, 'o', color = color)
-ax2.plot(phasenew, nut_const_int, ':', color = color)
+ax2.plot(phasenew, nut_const_int, ':', color = color,
+         label = r'$\nu_{k \varepsilon} = C_\mu k^2 \langle \varepsilon \rangle^{-1}$')
 ax2.plot(phasenew,nut_int,'-', color = color)
 
 ax2.set_xticks(phasebins)
 ax2.set_xticklabels(phaselabels)
 ax2.legend(loc = 'upper right')
 ax2.set_title('(b)')
-# ax2.set_ylim(-.2e-5,1e-5)
+ax2.set_ylim(-.2e-5,1.75e-5)
 
 
 # ax1.annotate(s = '', xy = (-0.45,2.5e-4), xytext = (-0.45 + lag_idx*(phasenew[1] - phasenew[0]),2.5e-4),
@@ -346,4 +347,4 @@ ax2.annotate(s = r'$C_\mu k \epsilon^{-1} = $' + ' {:.3f} s'.format(t_turb),
 fig.set_size_inches(13,6)
 fig.tight_layout(pad = 0.5)
 plt.rcParams.update(params)
-# plt.savefig('plots/delta_nut_comparison.pdf')
+plt.savefig('plots/delta_nut_comparison.pdf')
