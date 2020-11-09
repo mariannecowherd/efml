@@ -52,7 +52,7 @@ for n in burstnums:
         u = np.nanmean(velmajwave, axis = 0) #vertical average
         v = np.nanmean(velminwave, axis=0) #vertical average
 
-            #Calculating fluctuating velocity
+        #Calculating fluctuating velocity
         p,m = np.shape(velmajwave)
         up = np.zeros((p,m))
         vp = np.zeros((p,m))

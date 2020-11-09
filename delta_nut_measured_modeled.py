@@ -7,10 +7,12 @@ Created on Mon Sep 21 11:29:22 2020
 """
 
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 from scipy import interpolate
 import scipy.signal as sig
 import netCDF4 as nc
+
 
 import sys
 sys.path.append('/Users/gegan/Documents/Python/Research/General')
@@ -18,8 +20,8 @@ sys.path.append('/Users/gegan/Documents/Python/Research/General')
 from mylib import naninterp
 
 waveturb = np.load('data/waveturb.npy', allow_pickle = True).item()
-bl = np.load('data/blparams.npy', allow_pickle = True).item() 
-phase_data = np.load('data/phase_stress.npy', allow_pickle = True).item()
+bl = np.load('data/blparams_alt.npy', allow_pickle = True).item() 
+phase_data = np.load('data/phase_stress_alt.npy', allow_pickle = True).item()
 gotm_data = nc.Dataset('data/combined_wbbl_01.nc', mode = 'r')
 
 # phase_data = dict()
@@ -40,7 +42,7 @@ phaselabels = [r'$-\pi$', r'$-\frac{3\pi}{4}$',r'$-\frac{\pi}{2}$', r'$-\frac{\p
 params = {
    'axes.labelsize': 28,
    'font.size': 28,
-   'legend.fontsize': 18,
+   'legend.fontsize': 16,
    'xtick.labelsize': 28,
    'ytick.labelsize': 28,
    'text.usetex': True,
@@ -116,7 +118,7 @@ ufilt = sig.filtfilt(b,a,u, axis = 1)
 
 
 up = u - np.nanmean(u, axis = 1, keepdims = True)
-ubar = np.nanmean(ufilt, axis = 0)
+ubar = np.nanmean(ufilt[-10:,:], axis = 0)
 
 del utemp, ztemp, nuttemp
 
@@ -175,7 +177,7 @@ for jj in range(len(phasebins)):
 delta = np.nanmean(2*bl['delta'][:,idx],axis = 1)
 # c1_ustar = 1
 # c1_ustar = 0.0971
-c1_ustar = .2
+c1_ustar = .14
 nu_scale = np.nanmean((1/c1_ustar)*0.41*bl['omega'][idx]*(2*bl['delta'][:,idx])**2, axis = 1)
 nu_scale_ci = 1.96*np.nanstd((1/c1_ustar)*0.41*bl['omega'][idx]*(2*bl['delta'][:,idx])**2, axis = 1)/np.sqrt(len(idx))
 
@@ -229,6 +231,15 @@ nut = 0.09*(k**2)/epsilon
 nut_std = nut*np.sqrt((epsilon_std/epsilon)**2 + (k2_std/(k**2))**2 )
 nut_ci = 1.96*nut_std/np.sqrt(len(idx))
 
+#Comparing against other nut_estimate
+nut_test = np.zeros((len(idx),8))
+for i in range(8):
+    for n, j in enumerate(idx):
+        zidx = ((phase_data['z'][:,j] > 0.0035) & (phase_data['z'][:,j] < 0.0125))
+        nut_test[n,i] = np.nanmean(0.09*phase_data['tke'][zidx,j,i]**2/epsilon_raw[zidx,j])
+
+nut_final = np.nanmean(nut_test, axis = 0)
+
 # finding optimal phase shift
 
 #spline interpolation
@@ -236,8 +247,22 @@ tck = interpolate.splrep(phasebins,nu_scale)
 phasenew = np.linspace(-np.pi,3*np.pi/4,200)
 nu_scale_int = interpolate.splev(phasenew,tck)
 
-tck = interpolate.splrep(phasebins,nut)
+tck = interpolate.splrep(phasebins,nut_final)
 nut_int = interpolate.splev(phasenew,tck)
+
+# us_fit = np.array([0.00677459, 0.00171504, 0.00278344, 0.00638623, 0.00695363,
+#        0.00176226, 0.00320806, 0.00649654])
+
+us_fit = np.array([0.03861628, 0.0290057 , 0.01163489, 0.05124935, 0.04170248,
+       0.03013098, 0.01302687, 0.05235832])
+us_ci = np.array([0.00442467, 0.00314246, 0.0009396,  0.00635281, 0.00463124, 0.00320819,
+ 0.00103818, 0.00617148])
+
+nu_fit = 0.41*us_fit*(np.nanmean(np.linspace(0.0035,.0125,10)))
+nu_fit_ci = 0.41*us_ci*(np.nanmean(np.linspace(0.0035,.0125,10)))
+
+tck = interpolate.splrep(phasebins,nu_fit)
+nu_fit_int = interpolate.splev(phasenew,tck)
 
 corr = np.correlate(sig.detrend(nu_scale_int),sig.detrend(nut_int), mode = 'full')[len(nu_scale_int)-1:]
 # corr = np.correlate(sig.detrend(nu_scale_int)/np.std(nu_scale_int),sig.detrend(nut_int)/np.std(nut_int), mode = 'full')[len(nu_scale_int)-1:]
@@ -251,35 +276,44 @@ t_turb = 0.09*np.nanmean(k/epsilon)
 fig, (ax1, ax2) = plt.subplots(1,2)
 
 color = '0.0'
+
+
+ax1.errorbar(phasebins, nu_fit, yerr = nu_fit_ci, fmt = 'o', color = '0.3',
+             capsize = 2)
+l1 = ax1.plot(phasenew, nu_fit_int, '--', color = '0.3', label = r'$\nu_*$')
+
+ax1.set_xticks(phasebins)
+ax1.set_xticklabels(phaselabels)
+
 ax1.errorbar(phasebins, nu_scale, yerr = nu_scale_ci, fmt = 'o', color = color, 
-             capsize = 2, label = r'$\nu_\delta = \frac{\kappa}{C_1} \delta^2 \omega$')
-ax1.plot(phasenew,nu_scale_int,'-', color = color)
+             capsize = 2)
+l2 = ax1.plot(phasenew,nu_scale_int,'-', color = color, label = r'$\nu_\delta = \frac{\kappa}{C_1} \delta^2 \omega$')
 ax1.set_ylabel(r'$\nu_T$ (m$^2$ s$^{-1}$)')
 ax1.ticklabel_format(axis = 'y', style = 'sci', scilimits = (0,0))
 
 color = '0.7'
-# ax2 = ax1.twinx()
-ax1.errorbar(phasebins, nut, yerr = nut_ci, fmt = 'o', color = color, 
-          capsize = 2, label = r'$\nu_{k \varepsilon} = C_\mu k^2 \langle\varepsilon\rangle^{-1}$')
-ax1.plot(phasenew,nut_int,'-', color = color)
+ax1.errorbar(phasebins, nut_final, yerr = nut_ci, fmt = 'o', color = color, 
+          capsize = 2)
+l3 = ax1.plot(phasenew,nut_int,'-', color = color, label = r'$\nu_{k \varepsilon} = C_\mu k^2 \langle\varepsilon\rangle^{-1}$')
 
-ax1.set_ylim(1.4e-4,4.8e-4)
 ax1.legend(loc = 'upper right')
 ax1.set_title('(a)')
 
 
-# ax1.annotate(s = '', xy = (-0.45,2.5e-4), xytext = (-0.45 + lag_idx*(phasenew[1] - phasenew[0]),2.5e-4),
-#               arrowprops=dict(arrowstyle='<->'))
 ax1.annotate(s = 'optimal lag = {:.2f} s'.format(tlag), 
               xy = (0.1,0.925), xycoords = 'axes fraction',fontsize = 16)
 
-ax1.annotate(s = r'$C_\mu k \epsilon^{-1} = $' + ' {:.2f} s'.format(t_turb), 
-              xy = (0.1,0.85), xycoords = 'axes fraction', fontsize = 16)
+ax1.annotate(s = r'$C_\mu k \langle \varepsilon \rangle^{-1} = $' + ' {:.2f} s'.format(t_turb), 
+              xy = (0.1,0.825), xycoords = 'axes fraction', fontsize = 16)
 
-ax1.set_xticks(phasebins)
-ax1.set_xticklabels(phaselabels)
-# ax1.annotate(s = r'$\delta u_*^{-1} = $' + ' {:.2f} s'.format(t_scale), xy = (-2,2.6e-4), 
-#               fontsize = 16)
+ax1.set_ylim(2e-5, 8e-4)
+
+
+
+lns = l1+l2+l3
+labs = [l.get_label() for l in lns]
+ax1.legend(lns, labs, loc='upper right')
+
 
 #Now for model
 #spline interpolation
@@ -299,7 +333,7 @@ lag_idx = corr.argmax()
 tlag = lag_idx*(phasenew[1] - phasenew[0])*(1/.333)/(2*np.pi)
 
 #compared to estimate from d^2/nu_t = delta/kappa*ustar
-# t_turb = 0.09*np.nanmean(tke_model[5:15,:]/eps_model[5:15,:])
+t_turb = 0.09*np.nanmean(tke_model[5:15,:]/eps_model[5:15,:])
 t_turb = 0.09*np.nanmean(tke_model[0,:]/eps_model[0,:])
 
 #Finding optimal scale factor
@@ -313,38 +347,41 @@ alpha_opt = alpha[np.argmin(errors)]
 alpha_opt = 1
 color = '0.0'
 ax2.errorbar(phasebins, alpha_opt*nu_scale_model, yerr = nu_scale_ci_model, fmt = 'o', color = color, 
-             capsize = 2, label = r'$\kappa \delta^2 \omega$')
-ax2.plot(phasenew,alpha_opt*nu_scale_int,'-', color = color)
+             capsize = 2)
+ax2.plot(phasenew,alpha_opt*nu_scale_int,'-', color = color, label = r'$\kappa \delta^2 \omega$')
 ax2.set_ylabel(r'$\nu_T$ (m$^2$ s$^{-1}$)')
 ax2.ticklabel_format(axis = 'y', style = 'sci', scilimits = (0,0))
 
 color = '0.7'
 # ax2 = ax1.twinx()
 ax2.errorbar(phasebins, nut_phase_model, yerr = nut_ci_model, fmt = 'o', color = color, 
-          capsize = 2, label = r'$\nu_{k \varepsilon} = C_\mu k^2 \varepsilon^{-1}$')
+          capsize = 2)
+ax2.plot(phasenew,nut_int,':', color = color, label = r'$\nu_{k \varepsilon} = C_\mu k^2 \varepsilon^{-1}$')
 
 ax2.plot(phasebins, nut_const_model, 'o', color = color)
-ax2.plot(phasenew, nut_const_int, ':', color = color,
+
+ax2.plot(phasenew, nut_const_int, '-', color = color,
          label = r'$\nu_{k \varepsilon} = C_\mu k^2 \langle \varepsilon \rangle^{-1}$')
-ax2.plot(phasenew,nut_int,'-', color = color)
+
+
 
 ax2.set_xticks(phasebins)
 ax2.set_xticklabels(phaselabels)
-ax2.legend(loc = 'upper right')
+ax2.legend(loc = 'upper left')
 ax2.set_title('(b)')
 ax2.set_ylim(-.2e-5,1.75e-5)
 
 
 # ax1.annotate(s = '', xy = (-0.45,2.5e-4), xytext = (-0.45 + lag_idx*(phasenew[1] - phasenew[0]),2.5e-4),
 #               arrowprops=dict(arrowstyle='<->'))
-ax2.annotate(s = 'optimal lag = {:.2f} s'.format(tlag), xy = (0.1,0.925), 
+ax2.annotate(s = 'optimal lag = {:.2f} s'.format(tlag), xy = (0.6,0.925), 
              xycoords = 'axes fraction', fontsize = 16)
 
-ax2.annotate(s = r'$C_\mu k \epsilon^{-1} = $' + ' {:.3f} s'.format(t_turb),
-             xy = (0.1,0.85), xycoords = 'axes fraction', fontsize = 16)
+ax2.annotate(s = r'$C_\mu k \langle \varepsilon \rangle^{-1} = $' + ' {:.3f} s'.format(t_turb),
+             xy = (0.6,0.85), xycoords = 'axes fraction', fontsize = 16)
 
 
 fig.set_size_inches(13,6)
 fig.tight_layout(pad = 0.5)
 plt.rcParams.update(params)
-plt.savefig('plots/delta_nut_comparison.pdf')
+# plt.savefig('plots/delta_nut_comparison.pdf')

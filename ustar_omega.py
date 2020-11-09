@@ -39,7 +39,7 @@ plt.close('all')
 
 
 
-blparams = np.load('data/blparams.npy',allow_pickle=True).item()
+blparams = np.load('data/blparams_alt.npy',allow_pickle=True).item()
 delta = 2*blparams['delta']
 phasebins = blparams['phasebins']
 ustarwc_sg17 = blparams['ustarwc_sg17']
