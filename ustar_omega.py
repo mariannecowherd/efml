@@ -25,38 +25,40 @@ params = {
    'image.cmap': 'plasma'
    }
 
+#initialize
 
+#uncomment and run this to define wavy vs non-wavy bursts
+#otherwise, load wavy vs non-wavy burst identification from files
 #iswavy = np.empty(384,dtype=bool)
 #check if the burst is sufficiently wavy for wave decomposition
 #for N in range(384): iswavy[N] = vfs.iswaves(N,False)
-
 #haswaves  = np.arange(384)[iswavy]
+
+#load wavy vs non-wavy busrts from data files
 haswaves=np.load('data/haswaves.npy')
 iswavy = np.load('data/iswavy.npy')
 
 plt.rcParams.update(params)
 plt.close('all')
 
-
-
-blparams = np.load('data/blparams_alt.npy',allow_pickle=True).item()
-delta = 2*blparams['delta']
-phasebins = blparams['phasebins']
-ustarwc_sg17 = blparams['ustarwc_sg17']
-ustarwc_gm = blparams['ustarwc_gm']
-ustar_adv5 = blparams['ustar_adv5']
-ustar_logfit = blparams[ 'ustar_logfit']
-ustarwc_meas = blparams['ustarwc_meas']
-ustarc_meas = blparams[ 'ustarc_meas']
-ubadv = blparams['ubadv']
-ubvec = blparams['ubvec']
-omega = blparams['omega']
-dirspread = blparams['dirspread']
+bl = np.load('data/blparams_alt.npy',allow_pickle=True).item()
+delta = 2*bl['delta']
+phasebins = bl['phasebins']
+ustarwc_sg17 = bl['ustarwc_sg17']
+ustarwc_gm = bl['ustarwc_gm']
+ustar_adv5 = bl['ustar_adv5']
+ustar_logfit = bl['ustar_logfit']
+ustarwc_meas = bl['ustarwc_meas']
+ustarc_meas = bl[ 'ustarc_meas']
+ubadv = bl['ubadv']
+ubvec = bl['ubvec']
+omega = bl['omega']
+dirspread = bl['dirspread']
 
 nu = 1e-6
 
+#wave reynolds number
 Re_d = ubvec * np.sqrt(2*nu/omega)/nu
-
 
 fig,ax = plt.subplots()
 sources = ['GM','Meas']

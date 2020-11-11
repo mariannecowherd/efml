@@ -39,6 +39,7 @@ dudz = np.zeros((30,len(burstnums),len(phasebins)))
 tke = np.zeros((30,len(burstnums),len(phasebins)))
 tke_wave = np.zeros((30,len(burstnums),len(phasebins)))
 
+#this takes many hours to run -- load from .npy files if possible
 for n in burstnums:
     try:
         vec = sio.loadmat(filepath + 'vectrino_' + str(n) + '.mat')
@@ -125,6 +126,7 @@ for n in burstnums:
     except TypeError:
         continue
 
+#save
 np.save('phase_stress.npy', {'uw_wave': uw_wave, 'uw': upwp, 'z' : z,
                                       'freestream': ubar, 'dudz':dudz,
                                       'epsilon': epsilon, 'tke':tke,
