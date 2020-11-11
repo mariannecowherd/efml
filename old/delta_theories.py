@@ -20,8 +20,8 @@ from vectrinofuncs import nanrm2
 
 #location of stress profiles
 filepath = '/Users/Marianne/Documents/GitHub/efml/'
-stress = np.load(filepath + 'phase_stress.npy', allow_pickle = True).item()
-blparams = np.load(filepath + 'blparams.npy',allow_pickle=True).item()
+stress = np.load(filepath + 'phase_stress_alt.npy', allow_pickle = True).item()
+blparams = np.load(filepath + 'blparams_alt.npy',allow_pickle=True).item()
 
 delta = blparams['delta']
 omega = blparams['omega']

@@ -246,12 +246,12 @@ def make_gm_offset(omega, kb, u0, offset):
         l = kappa*ustar/omega
         zeta = (z - offset)/l
         zeta0 = kb/(30*l)
-        
+
         uw  = u0*(1 -((sc.ker(2*np.sqrt(zeta)) + 1j*sc.kei(2*np.sqrt(zeta)))/
                       (sc.ker(2*np.sqrt(zeta0)) + 1j*sc.kei(2*np.sqrt(zeta0)))))
-        
+
         return uw.real
-    
+
     return gm
 
 # fitting gm function
@@ -267,19 +267,19 @@ u0 = np.zeros((8,))
 r2 = np.zeros((8,))
 
 for i in range(8):
-    
+
     popt, pcov = curve_fit(make_gm_offset(omega,kb,uinf[i],offset),znew[3:-3],vel_ens[3:-3,i],
                                           p0 = 1e-2, bounds = (1e-4, 1e-1))
-    
+
     ustar[i] = popt[0]
 
 
 for i in range(8):
-    
+
     ax[1].plot(vel_ens[:,i], znew[:], '-', color = 'C' + str(i))
-    
+
     zint = np.linspace(0.001, 0.015, 100)
-    ax[1].plot(make_gm_offset(omega,kb,uinf[i],offset)(zint,ustar[i])[14:], zint[14:], '--', 
+    ax[1].plot(make_gm_offset(omega,kb,uinf[i],offset)(zint,ustar[i])[14:], zint[14:], '--',
             color = 'C' + str(i))
 
 
@@ -309,7 +309,7 @@ for m in range(len(phasebins)):
     nu_theta[m] = popt[0]
     temp.append(r2_score(actual,predicted))
 rstest.append(np.nanmean(temp))
-    
+
 
 fig,ax = plt.subplots()
 r2 = []
@@ -330,7 +330,7 @@ ax.set_xlabel(r'$\frac{\tilde{u}}{u_b}$')
 #ax.set_ylabel(r'$z$ (cmab)')
 ax.set_ylim(0,1.5/100)
 ax.set_yticks([],[])
-    
+
 
 '''
 fit stokes function to the whole-burst velocity profiles
@@ -344,13 +344,9 @@ to do:
 '''
 kappa = 0.41 #von karman constant
 #offset = cardi b's husband
-#%%
-#offset = 1.7*delta_e /100 #convert cm to m
-
 
 rstest=[]
-   #offset = delta_e/100
-    #offset=h/100
+
 idx = znew>offset
 z = znew[idx]
 us_fit = np.zeros((len(phasebins)))
@@ -366,20 +362,11 @@ for m in range(len(phasebins)):
     us_fit[m] = popt[0]
     temp.append(r2_score(actual,predicted))
 rstest.append(np.nanmean(temp))
-    
-    
-#
+
 offset = 1.75*delta_e/100
-#us_fit[3]=us_fit[0]
-
-#us_fit[4]=us_fit[1]
-
-#us_fit[5]= us_fit[2]
-#nu_t=popt[0]
 r2 = []
 residual = []
 rmspe = []
-#fig,ax = plt.subplots(1,2)
 predictions = np.zeros((8,len(z)))
 for i in range(8):
     colorstr = 'C' + str(i)
@@ -468,4 +455,3 @@ nu_t_theta = np.nanmean(z[z<=0.01])*kappa*us_fit
 
 
 np.save('nuts.npy',{'nut': nu_t, 'ustar_theta':us_fit, 'nut_theta':nu_theta, 'z':z})
-

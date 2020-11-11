@@ -12,9 +12,6 @@ import numpy as np
 import scipy.io as sio
 import scipy.signal as sig
 from scipy import interpolate
-# import sys
-# sys.path.append('/Users/marianne/Documents/GitHub/efml')
-
 import vectrinofuncs as vfs
 
 #phase decomposition
@@ -49,8 +46,8 @@ for n in burstnums:
         #direction
         veleast,velnorth = vfs.pa_rotation(vec['velmaj'],vec['velmin'],-thetamaj_summer)
         velmajwave,velminwave = vfs.pa_rotation(veleast,velnorth,wavedir[n])
-        u = np.nanmean(velmajwave, axis = 0) #vertical average
-        v = np.nanmean(velminwave, axis=0) #vertical average
+        u = np.nanmean(velmajwave[-5:], axis = 0) #vertical average
+        v = np.nanmean(velminwave[-5:], axis=0) #vertical average
 
         #Calculating fluctuating velocity
         p,m = np.shape(velmajwave)

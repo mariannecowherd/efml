@@ -20,6 +20,7 @@ z = stress['z']
 phasebins = bl['phasebins']
 omega = bl['omega']
 ub = bl['ubvec']
+
 #%% Optimization function
 
 def make_stokes_offset(phasebins, omega, u0, colnum, dphi = np.pi/4):
@@ -107,10 +108,7 @@ for i in range(n):
         try:
             popt, pcov = curve_fit(make_stokes_offset(phasebins,omega[i],ub[i],j),zpos,uprof,
                                                   p0 = (5e-6, 0.004), bounds = ([1e-6,1e-4],[1e-4,6e-3]))
-            # popt, pcov = curve_fit(make_stokes(phasebins,omega[i],ub[i],offset_const,j),zpos,uprof,
-            #                                       p0 = 5e-6, bounds = (1e-6,1e-4))
-
-            nu_fit[i,j] = popt[0]
+                nu_fit[i,j] = popt[0]
             offset_fit[i,j] = popt[1]
         except ValueError:
             continue
@@ -119,8 +117,3 @@ for i in range(n):
 
     print(i)
     np.save('nu_fits_phase.npy', nu_fit)
-
-
-#%%
-
-idx = (ub > 0.07)

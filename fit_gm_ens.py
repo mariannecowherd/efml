@@ -55,12 +55,12 @@ def make_gm_offset(omega, kb, u0, offset):
         l = kappa*ustar/omega
         zeta = (z - offset)/l
         zeta0 = kb/(30*l)
-        
+
         uw  = u0*(1 -((sc.ker(2*np.sqrt(zeta)) + 1j*sc.kei(2*np.sqrt(zeta)))/
                       (sc.ker(2*np.sqrt(zeta0)) + 1j*sc.kei(2*np.sqrt(zeta0)))))
-        
+
         return uw.real
-    
+
     return gm
 
 #%% fitting gm function
@@ -76,22 +76,24 @@ u0 = np.zeros((8,))
 r2 = np.zeros((8,))
 
 for i in range(8):
-    
+
     popt, pcov = curve_fit(make_gm_offset(omega,kb,uinf[i],offset),znew[3:-3],vel_ens[3:-3,i],
                                           p0 = 1e-2, bounds = (1e-4, 1e-1))
-    
+
     ustar[i] = popt[0]
 
 #%%  Plotting
 fig, ax = plt.subplots()
 
 for i in range(8):
-    
+
     ax.plot(vel_ens[:,i], znew[:], '-', color = 'C' + str(i))
-    
+
     zint = np.linspace(0.001, 0.015, 100)
-    ax.plot(make_gm_offset(omega,kb,uinf[i],offset)(zint,ustar[i])[14:], zint[14:], '--', 
+    ax.plot(make_gm_offset(omega,kb,uinf[i],offset)(zint,ustar[i])[14:], zint[14:], '--',
             color = 'C' + str(i))
 
 fig.set_size_inches(8,6)
 fig.tight_layout(pad = 0.5)
+
+fig.save('vel_ens_gm.pdf')

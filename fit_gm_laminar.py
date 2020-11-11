@@ -7,19 +7,20 @@ Created on Tue Nov 10 12:53:00 2020
 """
 
 import numpy as np
-import scipy.signal as sig
-from scipy import interpolate
 import vectrinofuncs as vfs
 import matplotlib.pyplot as plt
-import scipy
+from scipy import interpolate
+import scipy.signal as sig
+from scipy import interpolate
+from scipy.optimize import curve_fit
+import scipy.special as sc
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 from vectrinofuncs import naninterp
 from stokesfunctions import make_stokes
-from scipy.optimize import curve_fit
-from scipy import interpolate
-import scipy.special as sc
+
 import warnings
+
 warnings.filterwarnings("ignore")
 
 params = {
@@ -37,17 +38,16 @@ params = {
 plt.rcParams.update(params)
 plt.close('all')
 
-
 #data
 profiles = np.load('data/phaseprofiles_alt.npy')
 stress = np.load('data/phase_stress_alt.npy', allow_pickle=True).item()
-blparams = np.load('data/blparams_alt.npy', allow_pickle = True).item()
-phasebins = blparams['phasebins']
-omega = blparams['omega']
-delta = blparams['delta']
-phasebins = blparams['phasebins']
-ustarwc_gm = blparams['ustarwc_gm']
-ubvec = blparams['ubvec']
+bl = np.load('data/blparams_alt.npy', allow_pickle = True).item()
+phasebins = bl['phasebins']
+omega = bl['omega']
+delta = bl['delta']
+phasebins = bl['phasebins']
+ustarwc_gm = bl['ustarwc_gm']
+ubvec = bl['ubvec']
 zs = stress['z']
 u0s = stress['freestream']
 
@@ -139,7 +139,8 @@ for n in burstnums:
 
 velidx=np.unique(velidx)
 
-vel_ens = np.nanmean(vel_interp[velidx,:,:],axis=0)
+vel_ens = np.sqrt(2)*np.nanmean(vel_interp[velidx,:,:],axis=0)
+
 u1 = np.nanmax(abs(vel_ens))
 phasebins2 = ['$-\\pi$', '$-3\\pi/4$', '$-\\pi/2$','$-\\pi/4$', '$0$',
               '$\\pi/4$', '$\\pi/2$', '$3\\pi/4$']
@@ -160,7 +161,7 @@ for i in range(8):
     z2 = z+0.001
     colorstr = 'C' + str(i)
     ax[0].plot((u1*omsum[:,i]),100*z2,':',color = colorstr)
-    ax[0].plot(vel_ens[:,i],znew*100,label = phasebins2[i])
+    ax[0].plot(vel_ens[:,i],znew[:]*100,'-',color = colorstr, label = phasebins2[i])
 
     #Spline fit to velocity profiles to add BL thickness
     tck = interpolate.splrep(znew,vel_ens[:,i], s = 0)
@@ -200,9 +201,6 @@ for n in burstnums:
 
 velidx=np.unique(velidx)
 
-vel_ens = np.sqrt(2)*np.nanmean(vel_interp[velidx,:,:],axis=0)
-
-
 # defining gm function
 def make_gm_offset(omega, kb, u0, offset):
     def gm(z, ustar):
@@ -210,12 +208,12 @@ def make_gm_offset(omega, kb, u0, offset):
         l = kappa*ustar/omega
         zeta = (z - offset)/l
         zeta0 = kb/(30*l)
-        
+
         uw  = u0*(1 -((sc.ker(2*np.sqrt(zeta)) + 1j*sc.kei(2*np.sqrt(zeta)))/
                       (sc.ker(2*np.sqrt(zeta0)) + 1j*sc.kei(2*np.sqrt(zeta0)))))
-        
+
         return uw.real
-    
+
     return gm
 
 # fitting gm function
@@ -231,19 +229,19 @@ u0 = np.zeros((8,))
 r2 = np.zeros((8,))
 
 for i in range(8):
-    
+
     popt, pcov = curve_fit(make_gm_offset(omega,kb,uinf[i],offset),znew[3:-3],vel_ens[3:-3,i],
                                           p0 = 1e-2, bounds = (1e-4, 1e-1))
-    
+
     ustar[i] = popt[0]
 
 #plotting
 for i in range(8):
-    
+
     ax[1].plot(vel_ens[:,i], znew[:]*100, '-', color = 'C' + str(i))
-    
+
     zint = np.linspace(0.001, 0.015, 100)
-    ax[1].plot(make_gm_offset(omega,kb,uinf[i],offset)(zint,ustar[i])[14:], zint[14:]*100, '--', 
+    ax[1].plot(make_gm_offset(omega,kb,uinf[i],offset)(zint,ustar[i])[14:], zint[14:]*100, '--',
             color = 'C' + str(i))
 
 
@@ -300,8 +298,8 @@ handles, labels = ax[0].get_legend_handles_labels()
 ax[0].set_ylim(0,1.5)
 ax[1].set_ylim(0,1.5)
 
-ax[0].set_xlim(-0.9,0.9)
-ax[1].set_xlim(-0.9,0.9)
+ax[0].set_xlim(-1,1)
+ax[1].set_xlim(-1,1)
 
 l1=ax[1].legend(handles[0:12], labels[0:12],ncol=1,frameon=False,loc='center left',fontsize=18,bbox_to_anchor=(1, 0.5))
 ax[1].add_artist(l1)
@@ -313,5 +311,4 @@ ax[1].set_xlabel(r'$\frac{\tilde{u}}{u_b}$')
 ax[0].set_title(r'(a)')
 ax[1].set_title(r'(b)')
 
-
-
+fig.save('vel_ens_gm.pdf')

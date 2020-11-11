@@ -12,15 +12,26 @@ import numpy as np
 from scipy import interpolate
 import scipy.signal as sig
 import netCDF4 as nc
-
-
 import sys
-sys.path.append('/Users/gegan/Documents/Python/Research/General')
-
 from mylib import naninterp
 
+#plotting style
+params = {
+   'axes.labelsize': 28,
+   'font.size': 28,
+   'legend.fontsize': 16,
+   'xtick.labelsize': 28,
+   'ytick.labelsize': 28,
+   'text.usetex': True,
+   'font.family': 'serif'
+   }
+
+#user input the location of the data folder
+sys.path.append('/Users/gegan/Documents/Python/Research/General')
+
+#load in data
 waveturb = np.load('data/waveturb.npy', allow_pickle = True).item()
-bl = np.load('data/blparams_alt.npy', allow_pickle = True).item() 
+bl = np.load('data/blparams_alt.npy', allow_pickle = True).item()
 phase_data = np.load('data/phase_stress_alt.npy', allow_pickle = True).item()
 gotm_data = nc.Dataset('data/combined_wbbl_01.nc', mode = 'r')
 
@@ -35,37 +46,27 @@ del idx[203]
 
 dphi = np.pi/4 #Discretizing the phase
 phasebins = np.arange(-np.pi,np.pi,dphi)
-phaselabels = [r'$-\pi$', r'$-\frac{3\pi}{4}$',r'$-\frac{\pi}{2}$', r'$-\frac{\pi}{4}$', 
+phaselabels = [r'$-\pi$', r'$-\frac{3\pi}{4}$',r'$-\frac{\pi}{2}$', r'$-\frac{\pi}{4}$',
                r'$0$', r'$\frac{\pi}{4}$', r'$\frac{\pi}{2}$',r'$\frac{3\pi}{4}$'
                ]
 
-params = {
-   'axes.labelsize': 28,
-   'font.size': 28,
-   'legend.fontsize': 16,
-   'xtick.labelsize': 28,
-   'ytick.labelsize': 28,
-   'text.usetex': True,
-   'font.family': 'serif'
-   }
 
 def displacement_thickness(uprof,z):
-    """Calculates a modified displacement thickness for phase resolved boundary layer
-    velocity profiles. 
-    
+    """
+    Calculates a modified displacement thickness for phase resolved boundary layer
+    velocity profiles.
+
     uprof is an n x p array where n is the number of vertical
-    measurement bins, and p is the number of phases. 
-    
-    z is the vertical coordinate and is an n x 1 array. 
-    
-    
+    measurement bins, and p is the number of phases.
+
+    z is the vertical coordinate and is an n x 1 array.
     """
     n,p = uprof.shape
     delta = np.zeros((p,))
     for i in range(p):
         int_range = ((z > 0) & (z < 1e-2))
         z_int = z[int_range]
-        
+
         uprof_int = uprof[int_range,i]
         max_range = ((z > 0) & (z < 1e-3))
         if np.nanmean(uprof[max_range,i]) < 0:
@@ -76,11 +77,11 @@ def displacement_thickness(uprof,z):
             idxmax = np.nanargmax(uprof_int)
         # umax = np.nanmax(uprof_int)
         # idxmax = np.nanargmax(uprof_int)
-        
+
         delta[i] = np.trapz(1 - uprof_int[:idxmax]/umax,z_int[:idxmax])
-    
-    
-    return delta 
+
+
+    return delta
 
 #%% Modeled data
 tidx = list(range(1000,150000))
@@ -94,7 +95,7 @@ eps = (gotm_data.variables['eps'][tidx,:-1,0,0] + gotm_data.variables['eps'][tid
 eps_model = eps.T
 
 tke = (gotm_data.variables['tke'][tidx,:-1,0,0] + gotm_data.variables['tke'][tidx,1:,0,0])/2
-tke_model = tke.T 
+tke_model = tke.T
 
 
 time = gotm_data.variables['time'][tidx]
@@ -114,7 +115,7 @@ f_high = 0.345
 fs = 100
 
 b,a = sig.butter(2,[f_low/(fs/2),f_high/(fs/2)], btype = 'bandpass')
-ufilt = sig.filtfilt(b,a,u, axis = 1) 
+ufilt = sig.filtfilt(b,a,u, axis = 1)
 
 
 up = u - np.nanmean(u, axis = 1, keepdims = True)
@@ -127,13 +128,13 @@ nut_bar = nut_model[0,:]
 # nut_bar = (nut_model[6,:] + nut_model[7,:])/2
 # nut_bar = np.nanmean(nut_model[5:15,:], axis  = 0)
 
-#Filtering in spectral space 
+#Filtering in spectral space
 
 #calculate analytic signal based on de-meaned and low pass filtered velocity
-hu = sig.hilbert(ubar - np.nanmean(ubar)) 
+hu = sig.hilbert(ubar - np.nanmean(ubar))
 
 #Phase based on analytic signal
-p = np.arctan2(hu.imag,hu.real) 
+p = np.arctan2(hu.imag,hu.real)
 
 delta_full = displacement_thickness(up,z)
 
@@ -153,14 +154,14 @@ nut_const_ci_model = np.zeros((len(phasebins),))
 kappa = 0.41
 
 for jj in range(len(phasebins)):
-       
+
     if jj == 0:
         #For -pi
         idx1 = ( (p >= phasebins[-1] + (dphi/2)) | (p <= phasebins[0] + (dphi/2))) #Measured
     else:
         #For phases in the middle
         idx1 = ((p >= phasebins[jj]-(dphi/2)) & (p <= phasebins[jj]+(dphi/2))) #measured
-   
+
     uprof_model[:,jj] = np.mean(up[:,idx1], axis = 1) #Averaging over the indices for this phase bin for measurement
     nut_phase_model[jj] = np.mean(nut_bar[idx1])
     nut_ci_model[jj] = 1.96*np.std(nut_bar[idx1])/np.sqrt(np.sum(idx1))
@@ -187,25 +188,16 @@ intmask = ((phase_data['z'][:,idx] < 0.0105) & (phase_data['z'][:,idx] > 0.0025)
 phase_data['epsilon'][np.isnan(phase_data['epsilon'])] = 0
 phase_data['tke'][np.isnan(phase_data['tke'])] = 0
 
-# nu_t from k-epsilon model 
+# nu_t from k-epsilon model
 scale = (1/(np.sum(intmask,axis = 0)*0.001))
-
-#Old method with bad epsilon
-# epsilon = np.array([np.nanmean( scale*np.trapz(phase_data['epsilon'][:,idx,i]*intmask, 
-#                                          np.flipud(phase_data['z'][:,idx]), axis = 0)) for i in range(8) ])
-
-
-
-# epsilon_std = np.array([np.nanstd( scale*np.trapz(phase_data['epsilon'][:,idx,i]*intmask, 
-#                                          np.flipud(phase_data['z'][:,idx]), axis = 0)) for i in range(8) ])
 
 #New method with constant epsilon
 epsilon_raw = np.load('data/epsilon.npy', allow_pickle = True).item()['epsilon']
 
-epsilon = np.array([np.nanmean( scale*np.trapz(epsilon_raw[:,idx]*intmask, 
+epsilon = np.array([np.nanmean( scale*np.trapz(epsilon_raw[:,idx]*intmask,
                                           np.flipud(phase_data['z'][:,idx]), axis = 0)) for i in range(8) ])
 
-epsilon_std = np.array([np.nanstd( scale*np.trapz(epsilon_raw[:,idx]*intmask, 
+epsilon_std = np.array([np.nanstd( scale*np.trapz(epsilon_raw[:,idx]*intmask,
                                           np.flipud(phase_data['z'][:,idx]), axis = 0)) for i in range(8) ])
 
 # #New method with phase varying structure function epsilon
@@ -224,8 +216,8 @@ k_std = np.array([np.nanstd(scale*np.trapz(phase_data['tke'][:,idx,i]*intmask,
 k2_std = 2*k*k_std
 
 cov_k_eps = np.array([np.cov(naninterp(scale*np.trapz((phase_data['tke'][:,idx,i]**2)*intmask,
-                                  np.flipud(phase_data['z'][:,idx]), axis = 0)), 
-                                        naninterp(scale*np.trapz(phase_data['epsilon'][:,idx,i]*intmask, 
+                                  np.flipud(phase_data['z'][:,idx]), axis = 0)),
+                                        naninterp(scale*np.trapz(phase_data['epsilon'][:,idx,i]*intmask,
                                          np.flipud(phase_data['z'][:,idx]), axis = 0)))[0,1] for i in range(8) ] )
 nut = 0.09*(k**2)/epsilon
 nut_std = nut*np.sqrt((epsilon_std/epsilon)**2 + (k2_std/(k**2))**2 )
@@ -266,7 +258,7 @@ nu_fit_int = interpolate.splev(phasenew,tck)
 
 corr = np.correlate(sig.detrend(nu_scale_int),sig.detrend(nut_int), mode = 'full')[len(nu_scale_int)-1:]
 # corr = np.correlate(sig.detrend(nu_scale_int)/np.std(nu_scale_int),sig.detrend(nut_int)/np.std(nut_int), mode = 'full')[len(nu_scale_int)-1:]
-lag_idx = corr.argmax() 
+lag_idx = corr.argmax()
 tlag = lag_idx*(phasenew[1] - phasenew[0])*(1/.36)/(2*np.pi)
 
 #compared to estimate from d^2/nu_t = delta/kappa*ustar
@@ -285,14 +277,14 @@ l1 = ax1.plot(phasenew, nu_fit_int, '--', color = '0.3', label = r'$\nu_*$')
 ax1.set_xticks(phasebins)
 ax1.set_xticklabels(phaselabels)
 
-ax1.errorbar(phasebins, nu_scale, yerr = nu_scale_ci, fmt = 'o', color = color, 
+ax1.errorbar(phasebins, nu_scale, yerr = nu_scale_ci, fmt = 'o', color = color,
              capsize = 2)
 l2 = ax1.plot(phasenew,nu_scale_int,'-', color = color, label = r'$\nu_\delta = \frac{\kappa}{C_1} \delta^2 \omega$')
 ax1.set_ylabel(r'$\nu_T$ (m$^2$ s$^{-1}$)')
 ax1.ticklabel_format(axis = 'y', style = 'sci', scilimits = (0,0))
 
 color = '0.7'
-ax1.errorbar(phasebins, nut_final, yerr = nut_ci, fmt = 'o', color = color, 
+ax1.errorbar(phasebins, nut_final, yerr = nut_ci, fmt = 'o', color = color,
           capsize = 2)
 l3 = ax1.plot(phasenew,nut_int,'-', color = color, label = r'$\nu_{k \varepsilon} = C_\mu k^2 \langle\varepsilon\rangle^{-1}$')
 
@@ -300,10 +292,10 @@ ax1.legend(loc = 'upper right')
 ax1.set_title('(a)')
 
 
-ax1.annotate(s = 'optimal lag = {:.2f} s'.format(tlag), 
+ax1.annotate(s = 'optimal lag = {:.2f} s'.format(tlag),
               xy = (0.1,0.925), xycoords = 'axes fraction',fontsize = 16)
 
-ax1.annotate(s = r'$C_\mu k \langle \varepsilon \rangle^{-1} = $' + ' {:.2f} s'.format(t_turb), 
+ax1.annotate(s = r'$C_\mu k \langle \varepsilon \rangle^{-1} = $' + ' {:.2f} s'.format(t_turb),
               xy = (0.1,0.825), xycoords = 'axes fraction', fontsize = 16)
 
 ax1.set_ylim(2e-5, 8e-4)
@@ -329,7 +321,7 @@ nut_const_int = interpolate.splev(phasenew, tck)
 
 corr = np.correlate(sig.detrend(nu_scale_int),sig.detrend(nut_int), mode = 'full')[len(nu_scale_int)-1:]
 # corr = np.correlate(sig.detrend(nu_scale_int)/np.std(nu_scale_int),sig.detrend(nut_int)/np.std(nut_int), mode = 'full')[len(nu_scale_int)-1:]
-lag_idx = corr.argmax() 
+lag_idx = corr.argmax()
 tlag = lag_idx*(phasenew[1] - phasenew[0])*(1/.333)/(2*np.pi)
 
 #compared to estimate from d^2/nu_t = delta/kappa*ustar
@@ -346,7 +338,7 @@ alpha_opt = alpha[np.argmin(errors)]
 
 alpha_opt = 1
 color = '0.0'
-ax2.errorbar(phasebins, alpha_opt*nu_scale_model, yerr = nu_scale_ci_model, fmt = 'o', color = color, 
+ax2.errorbar(phasebins, alpha_opt*nu_scale_model, yerr = nu_scale_ci_model, fmt = 'o', color = color,
              capsize = 2)
 ax2.plot(phasenew,alpha_opt*nu_scale_int,'-', color = color, label = r'$\kappa \delta^2 \omega$')
 ax2.set_ylabel(r'$\nu_T$ (m$^2$ s$^{-1}$)')
@@ -354,7 +346,7 @@ ax2.ticklabel_format(axis = 'y', style = 'sci', scilimits = (0,0))
 
 color = '0.7'
 # ax2 = ax1.twinx()
-ax2.errorbar(phasebins, nut_phase_model, yerr = nut_ci_model, fmt = 'o', color = color, 
+ax2.errorbar(phasebins, nut_phase_model, yerr = nut_ci_model, fmt = 'o', color = color,
           capsize = 2)
 ax2.plot(phasenew,nut_int,':', color = color, label = r'$\nu_{k \varepsilon} = C_\mu k^2 \varepsilon^{-1}$')
 
@@ -374,7 +366,7 @@ ax2.set_ylim(-.2e-5,1.75e-5)
 
 # ax1.annotate(s = '', xy = (-0.45,2.5e-4), xytext = (-0.45 + lag_idx*(phasenew[1] - phasenew[0]),2.5e-4),
 #               arrowprops=dict(arrowstyle='<->'))
-ax2.annotate(s = 'optimal lag = {:.2f} s'.format(tlag), xy = (0.6,0.925), 
+ax2.annotate(s = 'optimal lag = {:.2f} s'.format(tlag), xy = (0.6,0.925),
              xycoords = 'axes fraction', fontsize = 16)
 
 ax2.annotate(s = r'$C_\mu k \langle \varepsilon \rangle^{-1} = $' + ' {:.3f} s'.format(t_turb),
@@ -384,4 +376,4 @@ ax2.annotate(s = r'$C_\mu k \langle \varepsilon \rangle^{-1} = $' + ' {:.3f} s'.
 fig.set_size_inches(13,6)
 fig.tight_layout(pad = 0.5)
 plt.rcParams.update(params)
-# plt.savefig('plots/delta_nut_comparison.pdf')
+plt.savefig('plots/delta_nut_comparison.pdf')
