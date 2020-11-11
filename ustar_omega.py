@@ -41,7 +41,7 @@ iswavy = np.load('data/iswavy.npy')
 plt.rcParams.update(params)
 plt.close('all')
 
-bl = np.load('data/blparams_alt.npy',allow_pickle=True).item()
+bl = np.load('data/blparams.npy',allow_pickle=True).item()
 delta = 2*bl['delta']
 phasebins = bl['phasebins']
 ustarwc_sg17 = bl['ustarwc_sg17']

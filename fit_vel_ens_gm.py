@@ -39,9 +39,9 @@ plt.close('all')
 
 
 #data
-profiles = np.load('data/phaseprofiles_alt.npy')
-stress = np.load('data/phase_stress_alt.npy', allow_pickle=True).item()
-blparams = np.load('data/blparams_alt.npy', allow_pickle = True).item()
+profiles = np.load('data/phaseprofiles.npy')
+stress = np.load('data/phase_stress.npy', allow_pickle=True).item()
+blparams = np.load('data/blparams.npy', allow_pickle = True).item()
 phasebins = blparams['phasebins']
 omega = blparams['omega']
 delta = blparams['delta']
@@ -191,12 +191,12 @@ def make_gm_offset(omega, kb, u0, offset):
         l = kappa*ustar/omega
         zeta = (z - offset)/l
         zeta0 = kb/(30*l)
-        
+
         uw  = u0*(1 -((sc.ker(2*np.sqrt(zeta)) + 1j*sc.kei(2*np.sqrt(zeta)))/
                       (sc.ker(2*np.sqrt(zeta0)) + 1j*sc.kei(2*np.sqrt(zeta0)))))
-        
+
         return uw.real
-    
+
     return gm
 
 # fitting gm function
@@ -212,10 +212,10 @@ u0 = np.zeros((8,))
 r2 = np.zeros((8,))
 
 for i in range(8):
-    
+
     popt, pcov = curve_fit(make_gm_offset(omega,kb,uinf[i],offset),znew[3:-3],vel_ens[3:-3,i],
                                           p0 = 1e-2, bounds = (1e-4, 1e-1))
-    
+
     ustar[i] = popt[0]
 
 #plotting figure 1b and calculating error
@@ -225,13 +225,13 @@ diffsum = []
 diffsum2 = []
 vel_blt = []
 for i in range(8):
-    
+
     ax[1].plot(vel_ens[:,i], znew[:]*100, '-', color = 'C' + str(i))
-    
+
     zint = np.linspace(0.001, 0.015, 100)
-    ax[1].plot(make_gm_offset(omega,kb,uinf[i],offset)(zint,ustar[i])[14:], zint[14:]*100, '--', 
+    ax[1].plot(make_gm_offset(omega,kb,uinf[i],offset)(zint,ustar[i])[14:], zint[14:]*100, '--',
             color = 'C' + str(i))
-    
+
     real = vel_ens[-13:,i]
     z_r = znew[-13:]
     predicted = make_gm_offset(omega,kb,uinf[i],offset)(z_r,ustar[i])
@@ -316,5 +316,3 @@ ax[1].set_title(r'(b)')
 fig.subplots_adjust(top=0.91,bottom=0.14, left=0.095, right=0.805, hspace=0.2, wspace=0.2)
 
 fig.savefig('plots/vel_ens.pdf')
-
-

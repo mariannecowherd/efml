@@ -31,8 +31,8 @@ sys.path.append('/Users/gegan/Documents/Python/Research/General')
 
 #load in data
 waveturb = np.load('data/waveturb.npy', allow_pickle = True).item()
-bl = np.load('data/blparams_alt.npy', allow_pickle = True).item()
-phase_data = np.load('data/phase_stress_alt.npy', allow_pickle = True).item()
+bl = np.load('data/blparams.npy', allow_pickle = True).item()
+phase_data = np.load('data/phase_stress.npy', allow_pickle = True).item()
 gotm_data = nc.Dataset('data/combined_wbbl_01.nc', mode = 'r')
 
 # phase_data = dict()
