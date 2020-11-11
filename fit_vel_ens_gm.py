@@ -7,20 +7,19 @@ Created on Tue Nov 10 12:53:00 2020
 """
 
 import numpy as np
-import vectrinofuncs as vfs
-import matplotlib.pyplot as plt
-from scipy import interpolate
 import scipy.signal as sig
 from scipy import interpolate
-from scipy.optimize import curve_fit
-import scipy.special as sc
+import vectrinofuncs as vfs
+import matplotlib.pyplot as plt
+import scipy
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 from vectrinofuncs import naninterp
 from stokesfunctions import make_stokes
-
+from scipy.optimize import curve_fit
+from scipy import interpolate
+import scipy.special as sc
 import warnings
-
 warnings.filterwarnings("ignore")
 
 params = {
@@ -38,16 +37,17 @@ params = {
 plt.rcParams.update(params)
 plt.close('all')
 
+
 #data
 profiles = np.load('data/phaseprofiles_alt.npy')
 stress = np.load('data/phase_stress_alt.npy', allow_pickle=True).item()
-bl = np.load('data/blparams_alt.npy', allow_pickle = True).item()
-phasebins = bl['phasebins']
-omega = bl['omega']
-delta = bl['delta']
-phasebins = bl['phasebins']
-ustarwc_gm = bl['ustarwc_gm']
-ubvec = bl['ubvec']
+blparams = np.load('data/blparams_alt.npy', allow_pickle = True).item()
+phasebins = blparams['phasebins']
+omega = blparams['omega']
+delta = blparams['delta']
+phasebins = blparams['phasebins']
+ustarwc_gm = blparams['ustarwc_gm']
+ubvec = blparams['ubvec']
 zs = stress['z']
 u0s = stress['freestream']
 
@@ -139,6 +139,8 @@ for n in burstnums:
 
 velidx=np.unique(velidx)
 
+#vel_ens = np.nanmean(vel_interp[velidx,:,:],axis=0)
+
 vel_ens = np.sqrt(2)*np.nanmean(vel_interp[velidx,:,:],axis=0)
 
 u1 = np.nanmax(abs(vel_ens))
@@ -151,12 +153,13 @@ phaselabels = [r'$-\frac{3\pi}{4}$',r'$-\frac{\pi}{2}$', r'$-\frac{\pi}{4}$',
                r'$0$', r'$\frac{\pi}{4}$', r'$\frac{\pi}{2}$',r'$\frac{3\pi}{4}$',
                r'$\pi$']
 
-fig,ax = plt.subplots(1,2)
+fig,ax = plt.subplots(1,2,figsize=(16,24))
 obs_blt = []
 model_blt = []
 obs_y=[]
 model_y=[]
 
+#plot figure 1a and save boundary layer thicknesses
 for i in range(8):
     z2 = z+0.001
     colorstr = 'C' + str(i)
@@ -180,26 +183,6 @@ for i in range(8):
     model_y.append(theory[blidxm])
     ax[0].plot(theory[blidxm],100*(z2[blidxm]),'o', fillstyle='none', color = colorstr)
 
-# ensemble velocity profiles
-vel_interp = np.zeros([384,15,8]) #initialize output
-velidx=[]
-znew = np.linspace(0.001, 0.015, 15)
-
-burstnums = list(range(384))
-#ensemble average, normalize by ubvec
-for n in burstnums:
-    for i in range(8):
-        try:
-            vel_old = profiles[:,n,i]/ubvec[n]
-            zold = zs[:,n].flatten()
-            zold,vel_old = vfs.nanrm2(zold,vel_old)
-            f_vel = interpolate.interp1d(zold,vfs.naninterp(vel_old),kind='cubic')
-            vel_interp[n,:,i] = (f_vel(znew))
-            velidx.append(n)
-        except ValueError:
-            continue
-
-velidx=np.unique(velidx)
 
 # defining gm function
 def make_gm_offset(omega, kb, u0, offset):
@@ -208,12 +191,12 @@ def make_gm_offset(omega, kb, u0, offset):
         l = kappa*ustar/omega
         zeta = (z - offset)/l
         zeta0 = kb/(30*l)
-
+        
         uw  = u0*(1 -((sc.ker(2*np.sqrt(zeta)) + 1j*sc.kei(2*np.sqrt(zeta)))/
                       (sc.ker(2*np.sqrt(zeta0)) + 1j*sc.kei(2*np.sqrt(zeta0)))))
-
+        
         return uw.real
-
+    
     return gm
 
 # fitting gm function
@@ -229,29 +212,47 @@ u0 = np.zeros((8,))
 r2 = np.zeros((8,))
 
 for i in range(8):
-
+    
     popt, pcov = curve_fit(make_gm_offset(omega,kb,uinf[i],offset),znew[3:-3],vel_ens[3:-3,i],
                                           p0 = 1e-2, bounds = (1e-4, 1e-1))
-
+    
     ustar[i] = popt[0]
 
-#plotting
+#plotting figure 1b and calculating error
+r2_gm=[]
+residual_gm=[]
+diffsum = []
+diffsum2 = []
+vel_blt = []
 for i in range(8):
-
+    
     ax[1].plot(vel_ens[:,i], znew[:]*100, '-', color = 'C' + str(i))
-
+    
     zint = np.linspace(0.001, 0.015, 100)
-    ax[1].plot(make_gm_offset(omega,kb,uinf[i],offset)(zint,ustar[i])[14:], zint[14:]*100, '--',
+    ax[1].plot(make_gm_offset(omega,kb,uinf[i],offset)(zint,ustar[i])[14:], zint[14:]*100, '--', 
             color = 'C' + str(i))
+    
+    real = vel_ens[-13:,i]
+    z_r = znew[-13:]
+    predicted = make_gm_offset(omega,kb,uinf[i],offset)(z_r,ustar[i])
+    r2_gm.append(r2_score(real,predicted))
+    residual_gm.append(mean_squared_error(real,predicted))
+    diffsum.append(np.nansum(np.abs(real-predicted)))
+    #error just above the boundary layer
+    diffsum2.append(np.nansum(np.abs(real[z_r>obs_blt[i]]-predicted[z_r>obs_blt[i]])))
+    vel_blt.append(np.nansum(np.abs(vel_ens[znew>obs_blt[i],i])))
 
+rmspe = np.nansum(diffsum)/np.nansum(np.abs(vel_ens[-13:,:]))
+rmspe_blt = np.nansum(diffsum2)/np.nansum(vel_blt)
 
+#adding boundary layer lines
 #spline fit blts for observations and model, separately
 model_y.append(model_y[0])
 model_blt.append(model_blt[0])
 obs_y.append(obs_y[0])
 obs_blt.append(obs_blt[0])
 
-#separate positive and negative phases becasuse spline requires monotonic input
+#separate positive and negative phases because spline requires monotonic input
 my1 = np.array(model_y)[0:5]
 my2 = np.array(model_y)[4:9]
 mb1 = np.array(model_blt)[0:5]
@@ -288,6 +289,7 @@ ob_interp = interpolate.splev(zinterp,tck,der = 0)
 
 ax[0].plot(zinterp,(ob_interp)*100,linestyle='dashdot',color='k',linewidth=0.8)
 
+#figure details
 #labels
 observed = ax[0].plot([300, 300], color = 'black', linestyle='-', label='observation')
 model = ax[0].plot([300,300],color='black',linestyle = ':', label='laminar')
@@ -311,4 +313,8 @@ ax[1].set_xlabel(r'$\frac{\tilde{u}}{u_b}$')
 ax[0].set_title(r'(a)')
 ax[1].set_title(r'(b)')
 
-fig.save('vel_ens_gm.pdf')
+fig.subplots_adjust(top=0.91,bottom=0.14, left=0.095, right=0.805, hspace=0.2, wspace=0.2)
+
+fig.savefig('plots/vel_ens.pdf')
+
+
