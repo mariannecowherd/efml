@@ -15,7 +15,7 @@ import netCDF4 as nc
 import sys
 from mylib import naninterp
 
-#plotting style
+#plotting style parameters
 params = {
    'axes.labelsize': 28,
    'font.size': 28,
@@ -123,13 +123,9 @@ ubar = np.nanmean(ufilt[-10:,:], axis = 0)
 
 del utemp, ztemp, nuttemp
 
-#%%
 nut_bar = nut_model[0,:]
-# nut_bar = (nut_model[6,:] + nut_model[7,:])/2
-# nut_bar = np.nanmean(nut_model[5:15,:], axis  = 0)
 
 #Filtering in spectral space
-
 #calculate analytic signal based on de-meaned and low pass filtered velocity
 hu = sig.hilbert(ubar - np.nanmean(ubar))
 
@@ -173,7 +169,7 @@ for jj in range(len(phasebins)):
     nut_const_model[jj] = 0.09*np.mean(tke_model[0,idx1])**2/np.nanmean(eps_model[0,:])
 # delta_model = displacement_thickness(uprof_model,z)
 
-#%% Measured boundary layer thickness scaling
+# Measured boundary layer thickness scaling
 
 delta = np.nanmean(2*bl['delta'][:,idx],axis = 1)
 # c1_ustar = 1
@@ -242,8 +238,6 @@ nu_scale_int = interpolate.splev(phasenew,tck)
 tck = interpolate.splrep(phasebins,nut_final)
 nut_int = interpolate.splev(phasenew,tck)
 
-# us_fit = np.array([0.00677459, 0.00171504, 0.00278344, 0.00638623, 0.00695363,
-#        0.00176226, 0.00320806, 0.00649654])
 
 us_fit = np.array([0.03861628, 0.0290057 , 0.01163489, 0.05124935, 0.04170248,
        0.03013098, 0.01302687, 0.05235832])
