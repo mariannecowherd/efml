@@ -55,6 +55,9 @@ ubvec = bl['ubvec']
 omega = bl['omega']
 dirspread = bl['dirspread']
 
+nu_fit_gm = np.load('data/nu_fits_phase.npy', allow_pickle=True).item()
+
+
 nu = 1e-6
 
 #wave reynolds number

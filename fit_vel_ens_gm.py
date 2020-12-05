@@ -224,6 +224,7 @@ residual_gm=[]
 diffsum = []
 diffsum2 = []
 vel_blt = []
+temp=[]
 for i in range(8):
 
     ax[1].plot(vel_ens[:,i], znew[:]*100, '-', color = 'C' + str(i))
@@ -241,6 +242,15 @@ for i in range(8):
     #error just above the boundary layer
     diffsum2.append(np.nansum(np.abs(real[z_r>obs_blt[i]]-predicted[z_r>obs_blt[i]])))
     vel_blt.append(np.nansum(np.abs(vel_ens[znew>obs_blt[i],i])))
+    
+    blt_gm =2*0.41*ustar[i]/omega
+    idx = np.nanargmin(np.abs(blt_gm-z_r))
+    temp.append(blt_gm)
+    ax[1].plot(predicted[idx],blt_gm*100,'o',fillstyle='none')
+    
+plt.figure(2)
+plt.plot(phasebins, temp, '*--')
+plt.plot(phasebins, obs_blt,'o:')
 
 rmspe = np.nansum(diffsum)/np.nansum(np.abs(vel_ens[-13:,:]))
 rmspe_blt = np.nansum(diffsum2)/np.nansum(vel_blt)
@@ -293,7 +303,7 @@ ax[0].plot(zinterp,(ob_interp)*100,linestyle='dashdot',color='k',linewidth=0.8)
 #labels
 observed = ax[0].plot([300, 300], color = 'black', linestyle='-', label='observation')
 model = ax[0].plot([300,300],color='black',linestyle = ':', label='laminar')
-fit = ax[0].plot([300,300],color='black',linestyle = '--',label = 'fit')
+fit = ax[0].plot([300,300],color='black',linestyle = '--',label = 'GM fit')
 blt = ax[0].plot([300,300],color='black',linestyle = 'dashdot',label = 'boundary layer')
 handles, labels = ax[0].get_legend_handles_labels()
 
@@ -307,12 +317,12 @@ l1=ax[1].legend(handles[0:12], labels[0:12],ncol=1,frameon=False,loc='center lef
 ax[1].add_artist(l1)
 
 ax[0].set_ylabel(r'$z$ (cmab)')
-ax[0].set_xlabel(r'$\frac{\tilde{u}}{u_b}$')
-ax[1].set_xlabel(r'$\frac{\tilde{u}}{u_b}$')
+ax[0].set_xlabel(r'$\tilde{u_{\theta}}u_b^{-1}$')
+ax[1].set_xlabel(r'$\tilde{u_{\theta}}u_b^{-1}$')
 
 ax[0].set_title(r'(a)')
 ax[1].set_title(r'(b)')
 
 fig.subplots_adjust(top=0.91,bottom=0.14, left=0.095, right=0.805, hspace=0.2, wspace=0.2)
 
-fig.savefig('plots/vel_ens.pdf')
+fig.savefig('plots/vel_ens_gm.pdf')
