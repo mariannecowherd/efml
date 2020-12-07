@@ -9,6 +9,7 @@ Created on Fri Jul 17 10:31:02 2020
 """
 import numpy as np
 from sklearn.linear_model import LinearRegression
+import scikits.bootstrap as boot
 import matplotlib.pyplot as plt
 import scipy
 import vectrinofuncs as vfs
@@ -55,13 +56,20 @@ ubvec = bl['ubvec']
 omega = bl['omega']
 dirspread = bl['dirspread']
 
-nu_fit_gm = np.load('data/nu_fits_phase.npy', allow_pickle=True).item()
+# nu_fit_gm = np.load('data/nu_fits_phase.npy', allow_pickle=True).item()
 
 
 nu = 1e-6
 
 #wave reynolds number
 Re_d = ubvec * np.sqrt(2*nu/omega)/nu
+
+#For confidence bounds
+def returnlinear(x,y):
+    model = LinearRegression(fit_intercept = True)
+    result = model.fit(x.reshape(-1,1),y.reshape(-1,1))
+    return result.coef_[0]
+
 
 fig,ax = plt.subplots()
 sources = ['GM','Meas']
@@ -88,10 +96,13 @@ for i in range(len(sources)):
 
     model=LinearRegression().fit(x.reshape((-1,1)),y.reshape((-1,1)))
     yfit = (model.intercept_ + model.coef_ * x).flatten(order='F')
+    
+    ci_fit = boot.ci((x.reshape((-1,1)),y.reshape((-1,1))),returnlinear)[:,0]
+    c1error = np.nanmax(np.abs(model.coef_[0] - ci_fit))
 
     print(model.coef_)
     ax.errorbar(mids*100,ymean*100,yerr = ci*100,fmt = 'o', color=colors[i],
-                capsize = 2,label=(sources[i]+r', $C_1$='+str(round(model.coef_[0][0],2))))
+                capsize = 2,label=(sources[i]+r', $C_1$ = '+ str(round(model.coef_[0][0],2)) + r' $\pm$ ' + str(round(c1error,2))))
     ax.plot(x*100,yfit*100,':',color = colors[i])#, label = 'm='+str(round(model.coef_[0][0],4)))
 
 
