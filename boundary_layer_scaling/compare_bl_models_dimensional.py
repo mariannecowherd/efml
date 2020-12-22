@@ -8,7 +8,7 @@ Created on Fri Aug 14 12:53:59 2020
 
 import sys
 sys.path.append('/Users/gegan/Documents/Python/Research/General')
-sys.path.append('/Users/marianne/Documents/GitHub/efml/data')
+#sys.path.append('/Users/marianne/Documents/GitHub/efml/data')
 from vectrinofuncs import naninterp
 
 import matplotlib.pyplot as plt

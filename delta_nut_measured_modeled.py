@@ -50,7 +50,6 @@ phaselabels = [r'$-\pi$', r'$-\frac{3\pi}{4}$',r'$-\frac{\pi}{2}$', r'$-\frac{\p
                r'$0$', r'$\frac{\pi}{4}$', r'$\frac{\pi}{2}$',r'$\frac{3\pi}{4}$'
                ]
 
-
 def displacement_thickness(uprof,z):
     """
     Calculates a modified displacement thickness for phase resolved boundary layer
