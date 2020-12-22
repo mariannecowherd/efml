@@ -317,8 +317,8 @@ l1=ax[1].legend(handles[0:12], labels[0:12],ncol=1,frameon=False,loc='center lef
 ax[1].add_artist(l1)
 
 ax[0].set_ylabel(r'$z$ (cmab)')
-ax[0].set_xlabel(r'$\tilde{u_{\theta}}u_b^{-1}$')
-ax[1].set_xlabel(r'$\tilde{u_{\theta}}u_b^{-1}$')
+ax[0].set_xlabel(r'$u(z, \theta)u_b^{-1}$')
+ax[1].set_xlabel(r'$u(z, \theta)u_b^{-1}$')
 
 ax[0].set_title(r'(a)')
 ax[1].set_title(r'(b)')
