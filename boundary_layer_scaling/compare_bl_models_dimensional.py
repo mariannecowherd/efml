@@ -8,16 +8,14 @@ Created on Fri Aug 14 12:53:59 2020
 
 import sys
 sys.path.append('/Users/gegan/Documents/Python/Research/General')
-sys.path.append('/Users/marianne/Documents/GitHub/efml')
-
-import matplotlib.pyplot as plt
-#from mylib import naninterp
+sys.path.append('/Users/marianne/Documents/GitHub/efml/data')
+from vectrinofuncs import naninterp
 
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import binned_statistic,linregress
 
-bl = np.load('../blparams.npy', allow_pickle = True).item()
+bl = np.load('../data/blparams.npy', allow_pickle = True).item()
 
 delta = naninterp(np.nanmean(bl['delta'][[1,5],:], axis = 0))
 
