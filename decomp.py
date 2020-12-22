@@ -38,6 +38,7 @@ epsilon = np.zeros((30,len(burstnums),len(phasebins)))
 dudz = np.zeros((30,len(burstnums),len(phasebins)))
 tke = np.zeros((30,len(burstnums),len(phasebins)))
 tke_wave = np.zeros((30,len(burstnums),len(phasebins)))
+ub = np.zeros(len(burstnums))
 
 #this takes many hours to run -- load from .npy files if possible
 for n in burstnums:
@@ -71,7 +72,8 @@ for n in burstnums:
         #Filtering in spectral space
         ufilt = vfs.wave_vel_decomp(u,fs = fs, component = 'u')
         vfilt = vfs.wave_vel_decomp(v,fs = fs, component = 'v')
-
+        
+        ub = np.sqrt(np.var(ufilt))
         #calculate analytic signal based on de-meaned and low pass filtered velocity
         hu = sig.hilbert(ufilt - np.nanmean(ufilt))
 

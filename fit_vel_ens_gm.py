@@ -47,7 +47,9 @@ omega = blparams['omega']
 delta = blparams['delta']
 phasebins = blparams['phasebins']
 ustarwc_gm = blparams['ustarwc_gm']
-ubvec = blparams['ubvec']
+#ubvec = blparams['ubvec']
+#ubvec=ub
+ubvec = np.load('ub.npy',allow_pickle=True)
 zs = stress['z']
 u0s = stress['freestream']
 
@@ -141,7 +143,7 @@ velidx=np.unique(velidx)
 
 #vel_ens = np.nanmean(vel_interp[velidx,:,:],axis=0)
 
-vel_ens = np.sqrt(2)*np.nanmean(vel_interp[velidx,:,:],axis=0)
+vel_ens = np.nanmean(vel_interp[velidx,:,:],axis=0)/np.sqrt(2)
 
 u1 = np.nanmax(abs(vel_ens))
 phasebins2 = ['$-\\pi$', '$-3\\pi/4$', '$-\\pi/2$','$-\\pi/4$', '$0$',
