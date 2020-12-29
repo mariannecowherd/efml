@@ -113,4 +113,6 @@ ax.set_ylabel(r'$\langle\delta\rangle$ (cm)')
 ax.set_xlabel(r'$u_*\omega^{-1}$ (cm)')
 fig.set_size_inches(8,6)
 fig.tight_layout(pad = 0.5)
+plt.show()
+
 fig.savefig('plots/ustar_omega.pdf',dpi=500)

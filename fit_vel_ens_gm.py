@@ -277,6 +277,7 @@ mb_interp = interpolate.splev(zinterp,tck,der = 0)
 
 ax[0].plot(zinterp,(mb_interp+0.001)*100,linestyle='dashdot',color='k',linewidth=0.8)
 
+print('got here')
 tck = interpolate.splrep(np.flipud(my2),np.flipud(mb2), s = 0)
 zinterp = np.linspace(np.nanmin(my2),np.nanmax(my2),50)
 mb_interp = interpolate.splev(zinterp,tck,der = 0)
@@ -326,6 +327,7 @@ ax[0].set_title(r'(a)')
 ax[1].set_title(r'(b)')
 
 fig.subplots_adjust(top=0.91,bottom=0.14, left=0.095, right=0.805, hspace=0.2, wspace=0.2)
+
 
 fig.show()
 fig.savefig('plots/vel_ens_gm.pdf')

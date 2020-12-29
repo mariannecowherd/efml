@@ -8,8 +8,6 @@ Created on Tue Dec 22 12:38:23 2020
 
 import numpy as np
 import scipy.io as sio
-import scipy.signal as sig
-from scipy import interpolate
 import vectrinofuncs as vfs
 
 #phase decomposition
