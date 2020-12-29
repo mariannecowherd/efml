@@ -18,13 +18,13 @@ import vectrinofuncs as vfs
 #location of vectrino data
 filepath = '/Volumes/Seagate Backup Plus Drive/VectrinoSummer/vecfiles/'
 
-wavedir = np.load('data/wavedir.npy',allow_pickle = True)
+wavedir = np.load('data/wavedir.npy', allow_pickle=True)
 
 burstnums = list(range(384))
 fs = 64
-thetamaj_summer =  -28.4547
-dphi = np.pi/4 #Discretizing the phase
-phasebins = np.arange(-np.pi,np.pi,dphi)
+thetamaj_summer = -28.4547
+dphi = np.pi/4  #Discretizing the phase
+phasebins = np.arange(-np.pi, np.pi, dphi)
 
 
 ub = np.zeros(len(burstnums))

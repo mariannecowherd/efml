@@ -327,4 +327,5 @@ ax[1].set_title(r'(b)')
 
 fig.subplots_adjust(top=0.91,bottom=0.14, left=0.095, right=0.805, hspace=0.2, wspace=0.2)
 
+fig.show()
 fig.savefig('plots/vel_ens_gm.pdf')

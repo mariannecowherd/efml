@@ -79,6 +79,7 @@ ax2.set_ylabel(r'$\delta$')
 ax2.ticklabel_format(axis = 'x',style = 'sci', scilimits = (0,0))
 # ax2.legend()
 
+
 #%% Plotting combined wave-current case
 
 abins = np.logspace(-2.5,-1,10)
