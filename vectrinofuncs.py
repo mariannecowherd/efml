@@ -22,8 +22,8 @@ naninterp
 contour_interp
 '''
 
-#packages used in all functions
-#relevant packages are imported as part of the user functions
+# packages used in all functions
+# relevant packages are imported as part of the user functions
 import numpy as np
 import scipy.signal as sig
 import matplotlib.pyplot as plt
@@ -33,19 +33,19 @@ import scipy
 import scipy.interpolate
 
 
-#user defined functions
+# user defined functions
 
 def pa_rotation(u,v,theta):
     import numpy as np
 
-    #Storing as complex variable w = u + iv
+    # Storing as complex variable w = u + iv
     w = u + 1j*v
 
     wr = w*np.exp(-1j*theta*np.pi/180)
     vel_maj = np.real(wr)
     vel_min = np.imag(wr)
 
-    return vel_maj,vel_min
+    return vel_maj, vel_min
 
 def wave_vel_decomp(u,fs,component,plot = False):
 
