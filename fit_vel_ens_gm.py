@@ -145,8 +145,8 @@ delta_theory = 2 * vfs.displacement_thickness_interp(u1 * omsum, z + 0.001)
 phaselabels = [r'$-\frac{3\pi}{4}$', r'$-\frac{\pi}{2}$', r'$-\frac{\pi}{4}$',
                r'$0$', r'$\frac{\pi}{4}$', r'$\frac{\pi}{2}$', r'$\frac{3\pi}{4}$',
                r'$\pi$']
-
-fig, ax = plt.subplots(1, 2, figsize=(24, 16)) #some systems better with 16,24
+#%%
+fig, ax = plt.subplots(1, 2, figsize=(14, 8)) #some systems better with 16,24
 obs_blt = []
 model_blt = []
 obs_y = []
