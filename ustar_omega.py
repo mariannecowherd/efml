@@ -20,7 +20,7 @@ params = {
    'legend.fontsize': 18,
    'xtick.labelsize': 28,
    'ytick.labelsize': 28,
-   'text.usetex': False,
+   'text.usetex': True,
    'font.family': 'serif',
    'axes.grid': False,
    'image.cmap': 'plasma'
@@ -72,9 +72,11 @@ def returnlinear(x, y):
 
 
 fig, ax = plt.subplots()
-sources = ['GM', 'Meas']
+#sources = ['GM', 'Meas']
+sources = ['Meas']
 xs = [ustarwc_gm, ustarwc_meas]/omega
-colors = ['gray', 'black']
+#colors = ['gray', 'black']
+colors = ['black']
 
 for i in range(len(sources)):
     y = (delta[1, :]+delta[5, :])/2
@@ -100,13 +102,13 @@ for i in range(len(sources)):
 
     print(model.coef_)
     ax.errorbar(mids*100, ymean*100, yerr=ci*100,fmt = 'o', color=colors[i],
-                capsize=2, label=(sources[i]+r', $C_1$ = '+ str(round(model.coef_[0][0], 2)) + r' $\pm$ ' + str(round(c1error, 2))))
-    ax.plot(x*100, yfit*100, ':', color=colors[i])  # , label = 'm='+str(round(model.coef_[0][0],4)))
+                capsize=2) #label=(r'$C_1$ = '+ str(round(model.coef_[0][0], 2)) + r' $\pm$ ' + str(round(c1error, 2))))
+    ax.plot(x*100, yfit*100, ':', color=colors[i], label=(r'$C_1$ = '+ str(round(model.coef_[0][0], 2)) + r' $\pm$ ' + str(round(c1error, 2))))
 
 
 handles, labels = ax.get_legend_handles_labels()
 order = [3, 2, 1, 0]
-ax.legend(handles, labels, frameon=False)
+ax.legend(handles, labels, frameon=True)
 ax.set_ylabel(r'$\langle\delta\rangle$ (cm)')
 ax.set_xlabel(r'$u_*\omega^{-1}$ (cm)')
 fig.set_size_inches(8, 6)
