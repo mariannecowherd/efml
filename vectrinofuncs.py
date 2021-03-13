@@ -22,7 +22,7 @@ naninterp
 contour_interp
 '''
 
-# packages used in all functions
+# packages used in many functions
 # relevant packages are imported as part of the user functions
 import numpy as np
 import scipy.signal as sig
@@ -539,9 +539,9 @@ def get_turb_waves(vec,fs,method):
 
 
 def remove_outliers(x,y,outmethod):
-
-    import numpy as np
     from sklearn.decomposition import PCA
+    import numpy as np
+
 
     if outmethod == 'std':
         K = 4
@@ -940,7 +940,7 @@ def get_dissipation(vectrino,fs,method):
                S22**2 + S23**2 + S31**2 + S32**2 + S33**2)
 
         return eps
-
+'''
     if method == 'scaling':
         u = vectrino['velmaj']
 
@@ -950,6 +950,7 @@ def get_dissipation(vectrino,fs,method):
 
         return eps
 
+'''
 
 def contour_interp(data,z,norm):
     z[z > 10] = np.nan
