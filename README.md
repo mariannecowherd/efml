@@ -6,8 +6,11 @@ The 'data' folder contains .npy files with saved outputs from data processing st
 
 
 `decomp.py` performs wave phase decomposition of the timeseries Vectrino data
+
 `fit_vel_ens_gm.py` takes phase-decomposed ensembles and fits the profiles to the Grant-Madsen model (Grant & Madsen 1979) to produce Figure 1
+
 `ustar_omega.py` examines scaling between boundary layer thickness from the observations to friction velocity normalized by anngular wave frequency to produce Figure 2
+
 `delta_nut_measured_modeled_nondim_final` compares observations of eddy viscosity with other eddy viscosity estimates from scaling and from the General Ocean Turbulence Model to produce Figure 3. The GOTM NetCDF output required to make the plot can be downloaded here:
 https://drive.google.com/drive/folders/1ubC_8dzXPfYH_62-ECe9mgpx5CQXjfQF?usp=sharing
 
