@@ -14,6 +14,12 @@ import matplotlib.pyplot as plt
 import scipy
 import vectrinofuncs as vfs
 
+from dirs import dir_home
+
+import sys
+sys.path.append(dir_home)
+
+
 params = {
    'axes.labelsize': 28,
    'font.size': 28,
