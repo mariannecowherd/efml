@@ -17,6 +17,11 @@ from scipy import interpolate
 import scipy.special as sc
 import warnings
 
+from dirs import dir_home
+
+import sys
+sys.path.append(dir_home)
+
 warnings.filterwarnings("ignore")
 
 params = {
