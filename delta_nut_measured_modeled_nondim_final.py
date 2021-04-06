@@ -13,12 +13,10 @@ from scipy import interpolate
 import scipy.signal as sig
 import netCDF4 as nc
 
-from dirs import dir_data, dir_home, dir_model
+from dirs import dir_home
 
 import sys
 sys.path.append(dir_home)
-sys.path.append(dir_data)
-sys.path.append(dir_model)
 
 
 from mylib import naninterp
