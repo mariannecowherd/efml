@@ -8,10 +8,17 @@ Created on Wed Feb  5 22:49:12 2020
 @title: iswaves
 """
 
+from dirs import dir_data
+
+import sys
+sys.path.append(dir_data)
+
+
+
 def iswaves(N,ifplot):
-    filepath = '/Users/marianne/Desktop/VectrinoSummer/'
+    filepath = dir_data
     
-    hparams = np.load('/Users/marianne/Desktop/VectrinoSummer/hydroparams/sdfix4_'+str(N)+'.npy',allow_pickle = True).item()
+    hparams = np.load(filepath + 'hydroparams/sdfix4_'+str(N)+'.npy',allow_pickle = True).item()
     vec = sio.loadmat(filepath + 'vectrino_' + str(N) + '.mat')
     
     #vertical average over some portion of the profile
