@@ -10,11 +10,13 @@ import numpy as np
 import scipy.io as sio
 import vectrinofuncs as vfs
 
+from dirs import dir_home, dir_data
+
 #phase decomposition
 #using bricker & monismith method
 
 #location of vectrino data
-filepath = '/Volumes/Seagate Backup Plus Drive/VectrinoSummer/vecfiles/'
+filepath = dir_data
 
 wavedir = np.load('data/wavedir.npy', allow_pickle=True)
 
