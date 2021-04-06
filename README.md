@@ -40,6 +40,7 @@ Please cite the following paper for the analysis steps and modeling data:
 Cowherd, M., Egan, G., Monismith, S., & Fringer, O. (2021). [Phase‐resolved wave boundary layer dynamics in a shallow estuary.](https://doi.org/10.1029/2020GL092251) Geophysical Research Letters.
 
 Please cite the data repository and/or related papers as relevant for field data:
+
 [Data repository](https://purl.stanford.edu/wv787xr0534)
 
 Egan, G., Cowherd, M., Fringer, O., & Monismith, S. (2019). [Observations of near‐bed shear stress in a shallow, wave‐and current‐driven flow.](https://doi.org/10.1029/2019JC015165) Journal of Geophysical Research: Oceans.
