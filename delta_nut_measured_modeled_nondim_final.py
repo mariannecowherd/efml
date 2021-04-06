@@ -13,9 +13,13 @@ from scipy import interpolate
 import scipy.signal as sig
 import netCDF4 as nc
 
+from dirs import dir_data, dir_home, dir_model
 
 import sys
-sys.path.append('/Users/gegan/Documents/Python/Research/General')
+sys.path.append(dir_home)
+sys.path.append(dir_data)
+sys.path.append(dir_model)
+
 
 from mylib import naninterp
 
